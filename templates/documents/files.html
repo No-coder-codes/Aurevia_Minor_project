@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}File Management | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h3 class="fw-700 text-body">File Management</h3>
+    <button class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        <i class="bi bi-cloud-upload me-1"></i> Upload File
+    </button>
+</div>
+
+<!-- File Tabs -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-transparent py-3">
+        <ul class="nav nav-pills card-header-pills" id="fileTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active py-1 px-4 text-sm" id="all-files-tab" data-bs-toggle="pill" data-bs-target="#all-files">All Documents</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link py-1 px-4 text-sm" id="your-files-tab" data-bs-toggle="pill" data-bs-target="#your-files">Uploaded By You</button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body p-0">
+        <div class="tab-content">
+            <!-- All Files Tab -->
+            <div class="tab-pane fade show active" id="all-files">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 px-4">File Name</th>
+                                <th class="border-0">Project</th>
+                                <th class="border-0">Uploaded By</th>
+                                <th class="border-0 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in files %}
+                            <tr>
+                                <td class="px-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-text fs-4 text-primary me-3"></i>
+                                        <div>
+                                            <div class="fw-bold text-body small">{{ file.title }}</div>
+                                            <div class="text-xs text-muted">{{ file.file.size|filesizeformat }} • {{ file.uploaded_at|date:"M d, Y" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="text-xs fw-600 text-primary">{{ file.project.title }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://ui-avatars.com/api/?name={{ file.uploaded_by.username }}&background=858796&color=fff" alt="User" width="24" height="24" class="rounded-circle me-2">
+                                        <span class="text-xs text-body">{{ file.uploaded_by.username }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Download"><i class="bi bi-download"></i></a>
+                                    <button class="btn btn-sm btn-outline-danger py-1 px-2 ms-1" title="Delete"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-muted small">No documents found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Your Files Tab -->
+            <div class="tab-pane fade" id="your-files">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 px-4">File Name</th>
+                                <th class="border-0">Project</th>
+                                <th class="border-0 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in user_files %}
+                            <tr>
+                                <td class="px-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-text fs-4 text-success me-3"></i>
+                                        <div>
+                                            <div class="fw-bold text-body small">{{ file.title }}</div>
+                                            <div class="text-xs text-muted">{{ file.file.size|filesizeformat }} • {{ file.uploaded_at|date:"M d, Y" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="text-xs fw-600 text-primary">{{ file.project.title }}</span></td>
+                                <td class="text-center">
+                                    <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Download"><i class="bi bi-download"></i></a>
+                                    <button class="btn btn-sm btn-outline-danger py-1 px-2 ms-1" title="Delete"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-5 text-muted small">You haven't uploaded any files yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Upload New Document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data" action="{% url 'file_list' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label text-sm fw-600">Document Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.project.id_for_label }}" class="form-label text-sm fw-600">Select Project</label>
+                        {{ form.project }}
+                        {% if form.project.errors %}
+                        <div class="invalid-feedback d-block">{{ form.project.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="{{ form.file.id_for_label }}" class="form-label text-sm fw-600">Choose File</label>
+                        {{ form.file }}
+                        {% if form.file.errors %}
+                        <div class="invalid-feedback d-block">{{ form.file.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">Start Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Scoped Dark Mode Readability Overrides for Upload Modal */
+    [data-theme='dark'] #uploadModal .modal-content {
+        background-color: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    [data-theme='dark'] #uploadModal .modal-header {
+        border-bottom: none !important;
+    }
+    [data-theme='dark'] #uploadModal .modal-title {
+        color: var(--text-primary) !important;
+    }
+    [data-theme='dark'] #uploadModal .btn-close {
+        filter: invert(1) !important;
+    }
+    [data-theme='dark'] #uploadModal .form-label {
+        color: var(--text-primary) !important;
+    }
+    [data-theme='dark'] #uploadModal .form-control,
+    [data-theme='dark'] #uploadModal .form-select {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    [data-theme='dark'] #uploadModal .form-control:focus,
+    [data-theme='dark'] #uploadModal .form-select:focus {
+        border-color: var(--primary-indigo) !important;
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+        color: var(--text-primary) !important;
+    }
+    [data-theme='dark'] #uploadModal .form-select option {
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+    }
+    [data-theme='dark'] #uploadModal ::placeholder {
+        color: var(--text-secondary) !important;
+        opacity: 0.8;
+    }
+    [data-theme='dark'] #uploadModal input[type="file"]::file-selector-button {
+        background-color: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    [data-theme='dark'] #uploadModal input[type="file"]::file-selector-button:hover {
+        background-color: var(--sidebar-active-bg) !important;
+    }
+    [data-theme='dark'] #uploadModal .invalid-feedback {
+        color: #ef4444 !important;
+        font-weight: 600;
+    }
+</style>
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const modalEl = document.getElementById('uploadModal');
+        
+        // Ensure close buttons reliably close the modal
+        const closeButtons = modalEl.querySelectorAll('[data-bs-dismiss="modal"]');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+            });
+        });
+
+        // Auto-show modal if there are validation errors
+        {% if show_modal %}
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.show();
+        {% endif %}
+    });
+</script>
+{% endblock %}
+{% endblock %}

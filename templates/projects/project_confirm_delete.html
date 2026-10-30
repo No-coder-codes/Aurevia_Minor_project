@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Project | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center pt-5">
+    <div class="col-md-6">
+        <div class="card shadow border-0">
+            <div class="card-body p-5 text-center">
+                <div class="text-danger mb-4">
+                    <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Delete Project?</h4>
+                <p class="text-muted mb-4">Are you sure you want to delete <strong>{{ object.title }}</strong>? This action cannot be undone and all associated tasks will be removed.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2 fw-bold">Yes, Delete Project</button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-light py-2">Cancel and Go Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

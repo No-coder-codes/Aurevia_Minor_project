@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+    <defs>
+        <linearGradient id="fav-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#818cf8"/>
+            <stop offset="100%" stop-color="#4f46e5"/>
+        </linearGradient>
+        <linearGradient id="fav-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fbbf24"/>
+            <stop offset="100%" stop-color="#f59e0b"/>
+        </linearGradient>
+    </defs>
+    <!-- Background Circle for crisp rendering on dark or light tabs -->
+    <rect width="48" height="48" rx="10" fill="#0b1325"/>
+    <!-- Outer Academic Shield -->
+    <path d="M24 6 L39 13.5 V25 C39 34 32.5 40 24 43 C15.5 40 9 34 9 25 V13.5 Z" 
+          fill="url(#fav-grad)"/>
+    <!-- Inner Gateway -->
+    <path d="M24 13 L33 18 V25 C33 30.5 29 34.5 24 36.5 C19 34.5 15 30.5 15 25 V18 Z" 
+          fill="#0b1325" opacity="0.85"/>
+    <!-- Central Golden Pillar / Beacon -->
+    <path d="M24 17 L29 22 H26 V29 H22 V22 H19 Z" fill="url(#fav-gold)"/>
+    <circle cx="24" cy="12" r="2" fill="#ffffff"/>
+</svg>

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Rosters | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-body fw-bold">Student Rosters</h1>
+            <p class="text-sm text-secondary mb-0">Enrolled student records and section rosters under <strong>{{ active_workspace.name }}</strong></p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            {% if not user.student_profile %}
+            <a href="{% url 'academics:roster_import' %}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import CSV/Excel
+            </a>
+            {% endif %}
+            {% if user.student_profile.cr_role and user.student_profile.cr_role.is_active or user.role == 'director' %}
+            <a href="{% url 'academics:cr_portal' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-star me-1"></i> CR Portal
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card shadow-sm border-0 mb-4 p-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <input type="text" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm" placeholder="Search by name, ID or username...">
+            </div>
+            <div class="col-md-3">
+                <select name="programme" class="form-select form-select-sm">
+                    <option value="">All Programmes</option>
+                    {% for p in programmes %}
+                    <option value="{{ p.id }}" {% if request.GET.programme == p.id|stringformat:"s" %}selected{% endif %}>{{ p.code }} - {{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="division" class="form-select form-select-sm">
+                    <option value="">All Divisions</option>
+                    {% for d in divisions %}
+                    <option value="{{ d.id }}" {% if request.GET.division == d.id|stringformat:"s" %}selected{% endif %}>{{ d.programme.code }} - Sem {{ d.semester }} ({{ d.name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+                <a href="{% url 'academics:student_roster' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 px-4">Student Name</th>
+                            <th class="border-0">Student ID</th>
+                            <th class="border-0">Programme</th>
+                            <th class="border-0">Division / Section</th>
+                            <th class="border-0">Status</th>
+                            <th class="border-0">Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for st in students %}
+                        <tr>
+                            <td class="px-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-ring me-3">
+                                        <img src="https://ui-avatars.com/api/?name={{ st.user.username }}&background=8b5cf6&color=fff" width="32" height="32" class="rounded-circle" alt="Avatar">
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-body">{{ st.user.get_full_name|default:st.user.username }}</div>
+                                        <small class="text-muted">@{{ st.user.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-secondary-subtle text-secondary">{{ st.student_id }}</span></td>
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary">{{ st.programme.code }}</span>
+                                <small class="text-secondary d-block mt-1">{{ st.programme.name }}</small>
+                            </td>
+                            <td>
+                                {% if st.division %}
+                                <span class="text-sm text-body fw-semibold">{{ st.division.name }}</span>
+                                <small class="text-muted d-block">Semester {{ st.division.semester }}</small>
+                                {% else %}
+                                <span class="text-muted fst-italic small">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if st.enrollment_status == 'active' %}bg-success-subtle text-success
+                                    {% elif st.enrollment_status == 'on_leave' %}bg-warning-subtle text-warning
+                                    {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                    {{ st.get_enrollment_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-xs text-body">
+                                    <div><i class="bi bi-envelope me-1 text-muted"></i> {{ st.user.email }}</div>
+                                    {% if st.phone %}<div><i class="bi bi-telephone me-1 text-muted"></i> {{ st.phone }}</div>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted small">No students found matching current filters.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

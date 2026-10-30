@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Edit User{% else %}Add Recruit{% endif %} | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-in">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3 bg-transparent">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    {% if object %}Edit User Profile{% else %}Add New Team Member{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-4">
+                    {% if not object %}
+                    You are adding a new individual to the Aurevia Campus institutional hierarchy. 
+                    <strong>Directors</strong> can add Managers and Members. 
+                    <strong>Managers</strong> can only recruit Team Members.
+                    {% endif %}
+                </p>
+
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-600 text-sm">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="form-text text-xs">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="text-danger text-xs mt-1">
+                            {{ field.errors|first }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            {% if object %}Update Profile{% else %}Create Account{% endif %}
+                        </button>
+                        <a href="{% url 'team_list' %}" class="btn btn-light mt-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        background-color: var(--bg-primary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        border-color: var(--primary-indigo);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.1);
+    }
+</style>
+{% endblock %}

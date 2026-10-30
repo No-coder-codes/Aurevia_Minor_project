@@ -1,0 +1,302 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NexusFlow | Enterprise Management{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="animate-in">
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header flex-column align-items-start">
+            <div class="d-flex align-items-center w-100">
+                <img src="{% static 'img/logo_new.png' %}" alt="NexusFlow Logo" style="height: 36px; width: auto; object-fit: contain;">
+                <span class="sidebar-text ms-2">NexusFlow</span>
+            </div>
+            
+            {% if active_workspace %}
+            <div class="dropdown w-100 mt-3">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle w-100 d-flex align-items-center justify-content-center text-center text-xs border-secondary py-2 px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #f8fafc !important; font-size: 0.8rem; border-radius: 6px; white-space: normal; word-break: break-word;">
+                    <i class="bi bi-briefcase me-2 flex-shrink-0" style="font-size: 0.9rem;"></i>
+                    <span class="sidebar-text" style="text-align: center;">{{ active_workspace.name }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark shadow" style="max-height: 300px; overflow-y: auto; min-width: 100%; width: max-content;">
+                    <li class="dropdown-header text-xxs text-uppercase text-muted">Workspaces</li>
+                    {% for ws in available_workspaces %}
+                    <li>
+                        <a class="dropdown-item text-xs {% if ws.id == active_workspace.id %}active{% endif %}" href="{% url 'switch_workspace' ws.id %}?next={{ request.path }}" title="{{ ws.name }}" style="white-space: nowrap;">
+                            {% if ws.id == active_workspace.id %}✓ {% endif %}{{ ws.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                    
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-xs" href="{% url 'workspace_create' %}">
+                            <i class="bi bi-plus-lg me-1"></i> Create Workspace
+                        </a>
+                    </li>
+                    {% if active_role == 'owner' or active_role == 'admin' %}
+                    <li>
+                        <a class="dropdown-item text-xs" href="{% url 'workspace_settings' %}">
+                            <i class="bi bi-gear me-1"></i> Workspace Settings
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/' and not request.GET.status %}active{% endif %}" href="/" title="Dashboard">
+                    <i class="bi bi-grid-1x2"></i> <span class="sidebar-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item mt-3 px-4 mb-2 sidebar-text">
+                <small class="text-xs text-uppercase text-muted fw-600">Projects</small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/' and not request.GET.status %}active{% endif %}" href="/" title="All Projects">
+                    <i class="bi bi-folder2-open"></i> <span class="sidebar-text">All Projects</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.GET.status == 'completed' %}active{% endif %}" href="/?status=completed" title="Completed Projects">
+                    <i class="bi bi-check2-circle"></i> <span class="sidebar-text">Completed</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.GET.status == 'planning' %}active{% endif %}" href="/?status=planning" title="Pending Projects">
+                    <i class="bi bi-clock"></i> <span class="sidebar-text">Pending</span>
+                </a>
+            </li>
+            <li class="nav-item mt-3 px-4 mb-2 sidebar-text">
+                <small class="text-xs text-uppercase text-muted fw-600">Institution</small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/college/hierarchy/' in request.path %}active{% endif %}" href="{% url 'academics:hierarchy_overview' %}" title="Hierarchy">
+                    <i class="bi bi-diagram-3"></i> <span class="sidebar-text">Hierarchy</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/college/schools/' in request.path %}active{% endif %}" href="{% url 'academics:school_list' %}" title="Schools">
+                    <i class="bi bi-mortarboard"></i> <span class="sidebar-text">Schools</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/college/programmes/' in request.path %}active{% endif %}" href="{% url 'academics:programme_list' %}" title="Programmes">
+                    <i class="bi bi-book"></i> <span class="sidebar-text">Programmes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/college/students/' in request.path %}active{% endif %}" href="{% url 'academics:student_roster' %}" title="Students">
+                    <i class="bi bi-people"></i> <span class="sidebar-text">Students</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/college/admin-directory/' in request.path %}active{% endif %}" href="{% url 'academics:admin_directory' %}" title="Admin Units">
+                    <i class="bi bi-buildings"></i> <span class="sidebar-text">Admin Units</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/college/admissions/' in request.path %}active{% endif %}" href="{% url 'academics:admissions_list' %}" title="Admissions">
+                    <i class="bi bi-person-check"></i> <span class="sidebar-text">Admissions</span>
+                </a>
+            </li>
+            <li class="nav-item mt-3 px-4 mb-2 sidebar-text">
+                <small class="text-xs text-uppercase text-muted fw-600">Management</small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/tasks/' in request.path %}active{% endif %}" href="{% url 'task_list' %}" title="Tasks">
+                    <i class="bi bi-list-task"></i> <span class="sidebar-text">Tasks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/history/' in request.path %}active{% endif %}" href="{% url 'activity_history' %}" title="History">
+                    <i class="bi bi-activity"></i> <span class="sidebar-text">History</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/files/' in request.path %}active{% endif %}" href="{% url 'file_list' %}" title="Documents">
+                    <i class="bi bi-file-earmark-text"></i> <span class="sidebar-text">Documents</span>
+                </a>
+            </li>
+            {% if user.role != 'team_member' %}
+            <li class="nav-item">
+                <a class="nav-link {% if '/team/' in request.path %}active{% endif %}" href="{% url 'team_list' %}" title="Team">
+                    <i class="bi bi-people"></i> <span class="sidebar-text">Team</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    <div id="sidebarOverlay" class="sidebar-overlay d-lg-none"></div>
+
+    <!-- Main Content -->
+    <div id="content">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link me-3 p-0 text-muted" id="sidebarToggle" style="z-index: 1001; position: relative;" onclick="toggleSidebar()">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <div class="input-group d-none d-md-flex align-items-center bg-light rounded-pill px-2" style="width: 300px; height: 40px;">
+                    <span class="input-group-text bg-transparent border-0 p-0 ms-2" style="pointer-events: none;"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control bg-transparent border-0 search-input" placeholder="Quick search..." style="box-shadow: none; color: var(--text-primary) !important;">
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <!-- Theme Toggle -->
+                <div class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                    <i class="bi bi-sun-fill" id="themeIcon"></i>
+                </div>
+
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <a href="#" class="position-relative text-muted d-block mt-1" id="notifDropdown" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5 bell-pulse d-inline-block"></i>
+                        {% if unread_notifications_count > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.6rem;">
+                            {{ unread_notifications_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-0 overflow-hidden" style="width: 300px;">
+                        <li class="bg-primary p-3 text-white d-flex justify-content-between align-items-center">
+                            <h6 class="m-0">Notifications</h6>
+                            <a href="{% url 'mark_all_read' %}" class="text-white text-xs text-decoration-none">Mark all read</a>
+                        </li>
+                        {% for n in unread_notifications %}
+                        <li class="p-2 border-bottom">
+                            <div class="px-2 py-1">
+                                <div class="fw-bold small">{{ n.get_notif_type_display }}</div>
+                                <div class="text-xs text-muted">{{ n.message }}</div>
+                                <div class="text-xs mt-1 text-primary">{{ n.created_at|timesince }} ago</div>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="p-3 text-center text-muted small">No new notifications</li>
+                        {% endfor %}
+                        <li><a class="dropdown-item text-center py-2 small text-primary" href="{% url 'activity_history' %}">View All</a></li>
+                    </ul>
+                </div>
+                
+                <!-- User Profile -->
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" id="userDropdown" data-bs-toggle="dropdown">
+                        <span class="me-3 d-none d-lg-inline fw-600 text-sm">{{ user.username }}</span>
+                        <div class="avatar-ring d-flex">
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=6366f1&color=fff" alt="Profile" width="36" height="36" class="rounded-circle">
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3">
+                        <li><a class="dropdown-item py-2" href="#"><i class="bi bi-person me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item py-2" href="#"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item py-2 text-danger"><i class="bi bi-box-arrow-right me-2"></i> Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid p-4">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('content');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        // Sidebar logic
+        function toggleSidebar() {
+            if (window.innerWidth <= 992) {
+                // Mobile behavior
+                sidebar.classList.toggle('mobile-open');
+                if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
+            } else {
+                // Desktop behavior
+                sidebar.classList.toggle('collapsed');
+                content.classList.toggle('expanded');
+                // Optional: animate toggle icon if desired
+                sidebarToggle.classList.toggle('rotated');
+            }
+        }
+
+        if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        // Tooltips Initialization
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, { boundary: 'window' })
+        })
+
+        // Theme logic
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.className = theme === 'light' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
+        }
+
+        // Progress bars
+        document.querySelectorAll('[data-progress]').forEach(el => {
+            setTimeout(() => {
+                el.style.width = el.getAttribute('data-progress') + '%';
+            }, 1000);
+        });
+
+        // Functional Real-time Table Search
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', (e) => {
+                const term = e.target.value.toLowerCase();
+                const tableRows = document.querySelectorAll('tbody tr');
+                
+                tableRows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

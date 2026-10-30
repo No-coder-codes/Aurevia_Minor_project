@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Import Student Roster | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <div class="mb-4">
+        <a href="{% url 'academics:student_roster' %}" class="text-secondary text-sm text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Back to Student Rosters
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-body"><i class="bi bi-cloud-arrow-up me-2 text-primary"></i>Import Student Roster</h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if errors %}
+                    <div class="alert alert-danger border-0 shadow-sm mb-4">
+                        <div class="fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Import Validation Failed ({{ errors|length }} Errors)</div>
+                        <p class="text-xs mb-2">No records were imported due to row-level validation issues. Please fix the following errors and re-upload:</p>
+                        <ul class="text-xs mb-0 ps-3">
+                            {% for err in errors %}
+                            <li>{{ err }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Demo Testing Helper Banner -->
+                    <div class="alert alert-info border-0 shadow-sm mb-4 d-flex align-items-start gap-3">
+                        <i class="bi bi-info-circle-fill fs-5 text-primary mt-1"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-sm text-body">Demo Readiness & Sample Dataset</div>
+                            <p class="text-xs text-secondary mb-2">
+                                For academic evaluation and demonstration, a verified batch of 10 student records is prepared at <code>docs/demo/demo_roster_sample.csv</code>. It contains valid enrollments mapped directly to active programmes (CSE, ECE) and class divisions.
+                            </p>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-xxs px-2 py-1">
+                                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Pre-validated with zero validation errors
+                            </span>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label text-sm fw-bold text-body">Choose CSV or Excel Spreadsheet (.csv, .xlsx)</label>
+                            <input type="file" name="roster_file" class="form-control" accept=".csv,.xlsx" required>
+                            <small class="form-text text-muted">Maximum file size: 5MB. Must contain columns: <code>student_id, username, first_name, last_name, email, programme_code, division_name</code>.</small>
+                        </div>
+
+                        <div class="p-3 rounded mb-4 border" style="background-color: var(--bs-tertiary-bg);">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-xs text-uppercase text-secondary m-0">Required Spreadsheet Headers & Schema</h6>
+                                <span class="badge bg-secondary-subtle text-secondary text-xxs">7 Required Columns</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered text-xxs mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>student_id</th>
+                                            <th>username</th>
+                                            <th>first_name</th>
+                                            <th>last_name</th>
+                                            <th>email</th>
+                                            <th>programme_code</th>
+                                            <th>division_name</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>AUR2026001</td>
+                                            <td>arjun.sharma</td>
+                                            <td>Arjun</td>
+                                            <td>Sharma</td>
+                                            <td>arjun@aurevia.edu</td>
+                                            <td>CSE</td>
+                                            <td>Section A</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="bi bi-upload me-1"></i> Validate & Import Students
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

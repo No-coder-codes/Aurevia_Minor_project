@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutional Sign In | Aurevia Campus Operations</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    
+    <!-- Instant Theme Initializer (Eliminates FOUC) -->
+    <script>
+        (function() {
+            var saved = localStorage.getItem('aurevia_theme') || localStorage.getItem('theme');
+            if (!saved) {
+                saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-bs-theme', saved);
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            background-color: var(--bg-primary);
+        }
+
+        /* Ambient gradient glow in background */
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 550px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.05) 50%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 460px;
+            padding: 2.5rem 2.25rem;
+            position: relative;
+            z-index: 1;
+            transition: var(--transition-base);
+        }
+
+        .login-brand-logo {
+            height: 52px;
+            width: auto;
+            margin-bottom: 0.75rem;
+        }
+
+        .login-theme-toggle {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 10;
+        }
+
+        .persona-btn {
+            background: var(--bs-tertiary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.45rem 0.65rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition-fast);
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 0.35rem;
+        }
+
+        .persona-btn:hover, .persona-btn.active {
+            border-color: var(--primary-violet);
+            background: rgba(139, 92, 246, 0.12);
+            color: var(--text-primary);
+        }
+
+        .persona-btn .badge {
+            font-size: 0.65rem;
+        }
+
+        .input-group-text {
+            background-color: var(--bs-tertiary-bg);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <!-- Floating Theme Switcher -->
+        <div class="login-theme-toggle">
+            <button class="theme-toggle-btn" id="loginThemeToggle" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+                <i class="bi bi-moon-stars-fill" id="loginThemeIcon"></i>
+            </button>
+        </div>
+
+        <div class="login-card animate-in">
+            <!-- Brand Crest & Header -->
+            <div class="text-center mb-4">
+                <img src="{% static 'img/aurevia_logo.svg' %}" alt="Aurevia Campus" class="login-brand-logo">
+                <p class="text-xs text-secondary mb-0">Higher Education Operations & Academic Governance</p>
+            </div>
+
+            {% if form.errors %}
+            <div class="alert alert-danger py-2.5 px-3 text-xs border-0 shadow-sm mb-3 d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-6 flex-shrink-0"></i>
+                <div>
+                    <strong>Authentication failed:</strong> Please verify your username and password or select a demonstration persona below.
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Sign In Form -->
+            <form method="post" action="{% url 'login' %}" id="loginForm">
+                {% csrf_token %}
+                {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% endif %}
+
+                <!-- Username Field -->
+                <div class="mb-3">
+                    <label for="id_username" class="form-label text-xs fw-bold text-uppercase text-body">Institutional Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" id="id_username" class="form-control" required placeholder="e.g. president_vance" autocomplete="username">
+                    </div>
+                </div>
+
+                <!-- Password Field with Visibility Toggle -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="id_password" class="form-label text-xs fw-bold text-uppercase text-body mb-0">Password</label>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" id="id_password" class="form-control" required placeholder="••••••••••••" autocomplete="current-password">
+                        <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn" aria-label="Toggle password visibility" title="Show/Hide Password">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Primary Submit Action -->
+                <button type="submit" class="btn btn-primary w-100 py-2.5 mb-3 fw-bold" id="submitBtn">
+                    <i class="bi bi-box-arrow-in-right me-1.5"></i> Sign In to Aurevia Campus
+                </button>
+            </form>
+
+            <!-- Synthetic Demo Personas Section -->
+            <div class="mt-3 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-xxs text-uppercase fw-bold text-muted">Synthetic Demonstration Personas</span>
+                    <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">1-Click Fill</span>
+                </div>
+                
+                <div class="d-flex flex-column gap-1">
+                    <a href="javascript:void(0)" class="persona-btn" onclick="fillPersona('president_vance', 'Aurevia2026!', this)">
+                        <span><i class="bi bi-award me-1.5 text-primary"></i><strong>Dr. Eleanor Vance</strong></span>
+                        <span class="badge bg-primary-subtle text-primary">President</span>
+                    </a>
+                    <a href="javascript:void(0)" class="persona-btn" onclick="fillPersona('provost_pendelton', 'Aurevia2026!', this)">
+                        <span><i class="bi bi-mortarboard me-1.5 text-info"></i><strong>Dr. Arthur Pendelton</strong></span>
+                        <span class="badge bg-info-subtle text-info">Provost</span>
+                    </a>
+                    <a href="javascript:void(0)" class="persona-btn" onclick="fillPersona('registrar_hayes', 'Aurevia2026!', this)">
+                        <span><i class="bi bi-building-gear me-1.5 text-success"></i><strong>Dr. Margaret Hayes</strong></span>
+                        <span class="badge bg-success-subtle text-success">Registrar</span>
+                    </a>
+                    <a href="javascript:void(0)" class="persona-btn" onclick="fillPersona('dean_chen', 'Aurevia2026!', this)">
+                        <span><i class="bi bi-cpu me-1.5 text-warning"></i><strong>Dr. Robert Chen</strong></span>
+                        <span class="badge bg-warning-subtle text-warning">Dean (Engineering)</span>
+                    </a>
+                    <a href="javascript:void(0)" class="persona-btn" onclick="fillPersona('student_alice', 'Aurevia2026!', this)">
+                        <span><i class="bi bi-star me-1.5 text-secondary"></i><strong>Alice Walker</strong></span>
+                        <span class="badge bg-secondary-subtle text-secondary">Class Rep (CR)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Client Scripts -->
+    <script>
+        // Password Visibility Toggle
+        const passwordInput = document.getElementById('id_password');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+        if (togglePasswordBtn) {
+            togglePasswordBtn.addEventListener('click', function() {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                togglePasswordIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        }
+
+        // Form Submission Loading State
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Authenticating...';
+            });
+        }
+
+        // 1-Click Synthetic Persona Filler
+        function fillPersona(username, password, el) {
+            document.getElementById('id_username').value = username;
+            document.getElementById('id_password').value = password;
+            document.querySelectorAll('.persona-btn').forEach(btn => btn.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        // Theme Switcher for Login View
+        const html = document.documentElement;
+        const loginThemeToggle = document.getElementById('loginThemeToggle');
+        const loginThemeIcon = document.getElementById('loginThemeIcon');
+
+        function updateLoginThemeIcon(theme) {
+            if (loginThemeIcon) {
+                loginThemeIcon.className = theme === 'light' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
+            }
+        }
+
+        const currentTheme = html.getAttribute('data-theme') || 'light';
+        updateLoginThemeIcon(currentTheme);
+
+        if (loginThemeToggle) {
+            loginThemeToggle.addEventListener('click', function() {
+                const cur = html.getAttribute('data-theme') || 'light';
+                const next = cur === 'light' ? 'dark' : 'light';
+                html.setAttribute('data-theme', next);
+                html.setAttribute('data-bs-theme', next);
+                localStorage.setItem('aurevia_theme', next);
+                localStorage.setItem('theme', next);
+                updateLoginThemeIcon(next);
+            });
+        }
+    </script>
+</body>
+</html>

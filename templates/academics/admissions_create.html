@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Candidate Application | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 text-sm">
+                    <li class="breadcrumb-item"><a href="{% url 'academics:admissions_list' %}" class="text-decoration-none">Admissions Management</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">New Candidate</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1 text-body fw-bold">Register Candidate Application</h1>
+            <p class="text-sm text-secondary mb-0">Admissions intake for <strong>{{ active_workspace.name }}</strong></p>
+        </div>
+        <a href="{% url 'academics:admissions_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Pipeline
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <h5 class="fw-bold mb-3 text-body border-bottom pb-2">Applicant Personal Details</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-sm fw-semibold text-body">First Name <span class="text-danger">*</span></label>
+                                <input type="text" name="first_name" class="form-control" required placeholder="e.g. Liam">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-sm fw-semibold text-body">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" name="last_name" class="form-control" required placeholder="e.g. Gallagher">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-sm fw-semibold text-body">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-control" required placeholder="e.g. liam.g@example.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-sm fw-semibold text-body">Phone Number</label>
+                                <input type="tel" name="phone" class="form-control" placeholder="e.g. +1 555-019-2834">
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mb-3 text-body border-bottom pb-2">Academic Programme Selection</h5>
+                        <div class="mb-4">
+                            <label class="form-label text-sm fw-semibold text-body">Target Degree Programme <span class="text-danger">*</span></label>
+                            <select name="programme" class="form-select" required>
+                                <option value="">-- Choose Programme --</option>
+                                {% for prog in programmes %}
+                                <option value="{{ prog.id }}">{{ prog.code }} - {{ prog.name }} ({{ prog.department.school.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'academics:admissions_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4">Register Application</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

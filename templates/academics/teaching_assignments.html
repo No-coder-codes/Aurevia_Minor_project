@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Teaching Allocations | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-body fw-bold">Teaching Allocations</h1>
+            <p class="text-sm text-secondary mb-0">Faculty course assignments across programmes and class divisions</p>
+        </div>
+        <a href="{% url 'academics:faculty_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-person-lines-fill me-1"></i> Faculty Directory
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 px-4">Subject / Course</th>
+                            <th class="border-0">Class Division</th>
+                            <th class="border-0">Faculty Instructor</th>
+                            <th class="border-0">Academic Year</th>
+                            <th class="border-0">Schedule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assign in assignments %}
+                        <tr>
+                            <td class="px-4">
+                                <div class="fw-bold text-body">{{ assign.subject.name }}</div>
+                                <span class="badge bg-primary-subtle text-primary">{{ assign.subject.code }}</span>
+                                <small class="text-muted ms-1">{{ assign.subject.credits }} Credits</small>
+                            </td>
+                            <td>
+                                <div class="text-sm text-body fw-semibold">{{ assign.division.programme.code }} - {{ assign.division.name }}</div>
+                                <small class="text-secondary">Semester {{ assign.division.semester }}</small>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-body text-sm">{{ assign.faculty.user.get_full_name|default:assign.faculty.user.username }}</div>
+                                <small class="text-muted">{{ assign.faculty.designation }}</small>
+                            </td>
+                            <td><span class="text-sm text-body">{{ assign.academic_year }}</span></td>
+                            <td>
+                                <span class="text-xs text-secondary">{{ assign.schedule_details|default:"Schedule to be finalized" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted small">No active teaching allocations found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

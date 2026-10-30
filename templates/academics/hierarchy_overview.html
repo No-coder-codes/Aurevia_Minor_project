@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Institutional Hierarchy | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+        <div>
+            <h1 class="h3 mb-1 text-body fw-bold">Institutional Hierarchy & Governance</h1>
+            <p class="text-sm text-secondary mb-0">Structural governance, academic schools, and operational units for <strong>{{ active_workspace.name }}</strong></p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-sm-0">
+            <a href="{% url 'academics:school_list' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-mortarboard me-1"></i> Schools Directory
+            </a>
+            <a href="{% url 'academics:admin_directory' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-buildings me-1"></i> Administrative Directory
+            </a>
+        </div>
+    </div>
+
+    <!-- Executive Leadership Tier -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card p-3 h-100 border-0 shadow-sm border-start border-primary border-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-primary-subtle text-primary me-3 flex-shrink-0">
+                        <i class="bi bi-award fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-xxs text-uppercase fw-bold text-secondary">Institutional Governance</div>
+                        <h5 class="fw-bold mb-0 text-body">President / Chancellor</h5>
+                        <div class="text-xs text-primary fw-semibold mt-1">Dr. Eleanor Vance</div>
+                        <small class="text-muted text-xxs">Executive Oversight & Strategic Direction</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 h-100 border-0 shadow-sm border-start border-info border-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-info-subtle text-info me-3 flex-shrink-0">
+                        <i class="bi bi-mortarboard fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-xxs text-uppercase fw-bold text-secondary">Academic Affairs</div>
+                        <h5 class="fw-bold mb-0 text-body">Provost & Vice-Chancellor</h5>
+                        <div class="text-xs text-info fw-semibold mt-1">Dr. Arthur Pendelton</div>
+                        <small class="text-muted text-xxs">{{ schools.count }} Schools, Departments & Faculty Governance</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 h-100 border-0 shadow-sm border-start border-success border-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-success-subtle text-success me-3 flex-shrink-0">
+                        <i class="bi bi-building-gear fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-xxs text-uppercase fw-bold text-secondary">Administrative Operations</div>
+                        <h5 class="fw-bold mb-0 text-body">Registrar's Office</h5>
+                        <div class="text-xs text-success fw-semibold mt-1">Dr. Margaret Hayes</div>
+                        <small class="text-muted text-xxs">{{ admin_departments.count }} Administrative Offices, Hostels & Services</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Governance Tree: Academic Branch vs Administrative Branch -->
+    <div class="row g-3 mb-3">
+        <!-- Academic Branch -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm d-flex flex-column h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-3.5 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="p-2 rounded-circle bg-primary-subtle text-primary me-2"><i class="bi bi-mortarboard"></i></span>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-body">Academic Schools & Departments</h6>
+                            <small class="text-secondary text-xs">Reporting to Provost & Vice-Chancellor</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle text-xs">{{ schools.count }} Schools</span>
+                </div>
+                <div class="card-body px-3.5 pt-1 flex-grow-1">
+                    <div class="list-group list-group-flush">
+                        {% for school in schools %}
+                        <div class="list-group-item px-0 py-2.5 border-bottom bg-transparent">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <a href="{% url 'academics:school_detail' school.pk %}" class="fw-bold text-body text-decoration-none hover-primary text-sm">
+                                        {{ school.name }}
+                                    </a>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-1 text-xxs">{{ school.code }}</span>
+                                    <div class="text-xxs text-secondary mt-0.5">
+                                        <i class="bi bi-person-badge text-primary me-1"></i> Dean: 
+                                        <strong>{% if school.dean %}{{ school.dean.get_full_name|default:school.dean.username }}{% else %}Unassigned{% endif %}</strong>
+                                    </div>
+                                </div>
+                                <a href="{% url 'academics:school_detail' school.pk %}" class="btn btn-sm btn-outline-primary py-0.5 px-2 text-xs">
+                                    Manage <i class="bi bi-chevron-right ms-0.5"></i>
+                                </a>
+                            </div>
+
+                            <!-- Departments Pill Row -->
+                            <div class="ps-2.5 border-start border-2 border-primary mt-1.5">
+                                <span class="text-xxs text-uppercase fw-bold text-muted d-block mb-1">Academic Departments:</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for dept in school.departments.all %}
+                                    <span class="badge bg-body-tertiary text-body border text-xxs py-0.5 px-1.5">
+                                        {{ dept.name }} ({{ dept.code }})
+                                    </span>
+                                    {% empty %}
+                                    <small class="text-muted fst-italic text-xxs">No registered departments.</small>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted small">No academic schools currently configured.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Administrative & Operations Branch -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm d-flex flex-column h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-3.5 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="p-2 rounded-circle bg-success-subtle text-success me-2"><i class="bi bi-buildings"></i></span>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-body">Administrative & Operational Units</h6>
+                            <small class="text-secondary text-xs">Reporting to Registrar</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle text-xs">{{ admin_departments.count }} Units</span>
+                </div>
+                <div class="card-body px-3.5 pt-1 flex-grow-1">
+                    <div class="list-group list-group-flush">
+                        {% for dept in admin_departments %}
+                        <div class="list-group-item px-0 py-2.5 border-bottom bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <a href="{% url 'academics:admin_detail' dept.pk %}" class="fw-bold text-body text-decoration-none hover-primary text-sm">
+                                            {{ dept.name }}
+                                        </a>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle text-xxs">{{ dept.code }}</span>
+                                    </div>
+                                    <div class="text-xxs text-secondary mt-0.5">
+                                        Category: <span class="badge bg-secondary-subtle text-secondary text-xxs">{{ dept.get_category_display }}</span>
+                                        • In-Charge: <strong>{% if dept.head %}{{ dept.head.get_full_name|default:dept.head.username }}{% else %}Unassigned{% endif %}</strong>
+                                    </div>
+                                    {% if dept.capacity %}
+                                    <div class="text-xxs text-info mt-0.5">
+                                        <i class="bi bi-door-closed me-1"></i> Resident Capacity: <strong>{{ dept.capacity }} beds</strong>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex align-items-center gap-1.5">
+                                    {% if dept.category == 'admissions' %}
+                                    <a href="{% url 'academics:admissions_list' %}" class="badge bg-warning-subtle text-warning text-decoration-none border border-warning-subtle py-1 px-1.5 text-xxs">
+                                        <i class="bi bi-arrow-left-right me-0.5"></i> Admissions
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'academics:admin_detail' dept.pk %}" class="btn btn-sm btn-outline-secondary py-0.5 px-2 text-xs">
+                                        Details <i class="bi bi-chevron-right ms-0.5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted small">No administrative units configured.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Governance Matrix Protocol Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-3 px-3.5">
+            <h6 class="fw-bold mb-0 text-body">Aurevia Dual-Branch Governance Framework</h6>
+            <small class="text-secondary text-xs">Executive separation of academic curricula from operational administration</small>
+        </div>
+        <div class="card-body px-3.5 pt-1 pb-3">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-primary-subtle text-primary"><i class="bi bi-mortarboard-fill text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Provost Oversight</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-0">
+                            Academic Schools, Departments, and Degree Programmes maintain curriculum integrity, faculty appointments, research grants, and student viva assessments under the Provost.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-success-subtle text-success"><i class="bi bi-buildings-fill text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Registrar Operations</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-0">
+                            Admissions Office, Residential Hostels, Library Services, IT Infrastructure, and Finance operate under the Registrar to deliver seamless campus facilities.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-warning-subtle text-warning"><i class="bi bi-shield-check text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Dual-Reporting Admissions</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-0">
+                            Candidate applications bridge both branches: administrative verification is conducted by the Registrar, while academic suitability is reviewed by School faculty.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

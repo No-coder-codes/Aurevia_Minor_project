@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ school.name }} | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <div class="mb-4">
+        <a href="{% url 'academics:school_list' %}" class="text-secondary text-sm text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i> Back to Schools
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4 border-start border-4 border-primary">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="badge bg-primary-subtle text-primary mb-2">{{ school.code }}</span>
+                    <h2 class="h3 fw-bold text-body mb-2">{{ school.name }}</h2>
+                    <p class="text-secondary text-sm mb-3">{{ school.description|default:"No description provided." }}</p>
+                    <div class="text-sm">
+                        <span class="text-muted">Dean:</span> 
+                        <strong class="text-body">{% if school.dean %}{{ school.dean.get_full_name|default:school.dean.username }}{% else %}Unassigned{% endif %}</strong>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-secondary-subtle text-body border px-3 py-2 fs-6">
+                        {{ departments.count }} Departments
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="fw-bold text-body mb-3">Academic Departments</h5>
+    <div class="row">
+        {% for dept in departments %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-bold text-body mb-0">{{ dept.name }}</h6>
+                        <span class="badge bg-secondary-subtle text-secondary">{{ dept.code }}</span>
+                    </div>
+                    <div class="text-xs text-secondary mb-3">
+                        Head of Department: <strong>{% if dept.hod %}{{ dept.hod.get_full_name|default:dept.hod.username }}{% else %}Unassigned{% endif %}</strong>
+                    </div>
+                    <div class="border-top pt-2">
+                        <small class="text-muted text-xs text-uppercase fw-bold">Degree Programmes:</small>
+                        <ul class="list-unstyled mb-0 mt-1">
+                            {% for prog in dept.programmes.all %}
+                            <li class="text-xs text-body py-1 border-bottom">
+                                <i class="bi bi-journal-text me-1 text-primary"></i> {{ prog.name }} ({{ prog.code }})
+                            </li>
+                            {% empty %}
+                            <li class="text-xs text-muted fst-italic py-1">No programmes listed.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card p-4 text-center text-muted small">
+                No departments currently assigned under this school.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

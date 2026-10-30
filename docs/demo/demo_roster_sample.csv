@@ -1,0 +1,11 @@
+student_id,username,first_name,last_name,email,programme_code,division_name
+STU-2026-101,liam_patel,Liam,Patel,liam.patel@aurevia.edu,BT-CSE,Section A
+STU-2026-102,sophia_kim,Sophia,Kim,sophia.kim@aurevia.edu,BT-CSE,Section A
+STU-2026-103,noah_garcia,Noah,Garcia,noah.garcia@aurevia.edu,BT-CSE,Section B
+STU-2026-104,emma_johnson,Emma,Johnson,emma.johnson@aurevia.edu,BT-CSE,Section B
+STU-2026-105,aarav_sharma,Aarav,Sharma,aarav.sharma@aurevia.edu,BT-ECE,Section A
+STU-2026-106,olivia_brown,Olivia,Brown,olivia.brown@aurevia.edu,BT-ECE,Section A
+STU-2026-107,lucas_muller,Lucas,Muller,lucas.muller@aurevia.edu,MBA-EXEC,Section A
+STU-2026-108,mia_tanaka,Mia,Tanaka,mia.tanaka@aurevia.edu,MBA-EXEC,Section A
+STU-2026-109,ethan_williams,Ethan,Williams,ethan.williams@aurevia.edu,BA-COMM,
+STU-2026-110,chloe_dubois,Chloe,Dubois,chloe.dubois@aurevia.edu,BA-COMM,

@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Degree Programmes | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h4 mb-0 text-body fw-bold">Academic Programmes</h1>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-0.5 text-xs">Curricula Directory</span>
+            </div>
+            <p class="text-xs text-secondary mb-0">Undergraduate & postgraduate degree offerings under <strong>{{ active_workspace.name }}</strong></p>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+            <a href="{% url 'academics:school_list' %}" class="btn btn-outline-secondary btn-sm py-1 px-2.5 text-xs">
+                <i class="bi bi-mortarboard me-1"></i> Schools
+            </a>
+            <a href="{% url 'academics:class_list' %}" class="btn btn-primary btn-sm py-1 px-2.5 text-xs">
+                <i class="bi bi-people me-1"></i> Class Divisions
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Metrics Strip -->
+    <div class="row g-3 mb-3">
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-primary border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Total Programmes</div>
+                <div class="fs-4 fw-bold text-body">{{ total_programmes|default:programmes|length }} <span class="fs-6 fw-normal text-muted">Degrees</span></div>
+                <small class="text-primary mt-1 d-block text-xxs"><i class="bi bi-award me-1"></i>Active Offerings</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-info border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Undergraduate</div>
+                <div class="fs-4 fw-bold text-body">
+                    {{ ug_count|default:"0" }}
+                    <span class="fs-6 fw-normal text-muted">B.Tech / B.Sc</span>
+                </div>
+                <small class="text-info mt-1 d-block text-xxs"><i class="bi bi-mortarboard me-1"></i>4-Year Honours Track</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-warning border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Postgraduate</div>
+                <div class="fs-4 fw-bold text-body">
+                    {{ pg_count|default:"0" }}
+                    <span class="fs-6 fw-normal text-muted">M.Tech / M.Sc</span>
+                </div>
+                <small class="text-warning mt-1 d-block text-xxs"><i class="bi bi-book me-1"></i>2-Year Master Track</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-success border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Coordination Status</div>
+                <div class="fs-4 fw-bold text-body">{{ assignment_percentage|default:"0" }}% <span class="fs-6 fw-normal text-muted">Assigned</span></div>
+                <small class="text-success mt-1 d-block text-xxs"><i class="bi bi-check-circle me-1"></i>Faculty Coordinators Active</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Degree Programmes Table -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-transparent border-0 pt-3 px-3.5 d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold mb-0 text-body">Institutional Degree Offerings</h6>
+                <small class="text-secondary text-xs">Accredited curriculum tracks and departments</small>
+            </div>
+            <span class="badge bg-body-tertiary text-secondary border px-2 py-1 text-xs">{{ programmes|length }} Programmes Listed</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-body-tertiary">
+                        <tr>
+                            <th class="border-0 px-3.5 text-xs text-secondary text-uppercase fw-semibold">Programme Name</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">Code</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">Degree Level</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">Department & School</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">Faculty Coordinator</th>
+                            <th class="border-0 text-center text-xs text-secondary text-uppercase fw-semibold">Duration & Semesters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prog in programmes %}
+                        <tr class="table-row-hover">
+                            <td class="px-3.5 py-2.5">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-2 rounded-circle bg-primary-subtle text-primary me-2.5 flex-shrink-0">
+                                        <i class="bi bi-award fs-6"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-body text-sm">{{ prog.name }}</div>
+                                        <small class="text-muted text-xxs">Degree Program Track</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle text-xs px-2 py-0.5">{{ prog.code }}</span></td>
+                            <td>
+                                {% if prog.degree_level == 'undergraduate' %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle text-xxs px-2 py-0.5">Undergraduate (UG)</span>
+                                {% elif prog.degree_level == 'postgraduate' %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle text-xxs px-2 py-0.5">Postgraduate (PG)</span>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary text-xxs px-2 py-0.5">{{ prog.get_degree_level_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-xs text-body fw-semibold">{{ prog.department.name }}</div>
+                                <small class="text-muted text-xxs">{{ prog.department.school.name }}</small>
+                            </td>
+                            <td>
+                                {% if prog.coordinator %}
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-ring me-2">
+                                        <img src="https://ui-avatars.com/api/?name={{ prog.coordinator.username }}&background=6366f1&color=fff" width="24" height="24" class="rounded-circle" alt="Avatar">
+                                    </div>
+                                    <div class="text-xs text-body fw-medium">{{ prog.coordinator.get_full_name|default:prog.coordinator.username }}</div>
+                                </div>
+                                {% else %}
+                                <span class="text-muted text-xs fst-italic">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-body-tertiary text-body border text-xxs px-2 py-1">
+                                    <i class="bi bi-clock-history me-1 text-primary"></i>{{ prog.duration_years }} Yrs • {{ prog.total_semesters }} Semesters
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted small">
+                                <i class="bi bi-award fs-3 text-secondary d-block mb-1"></i>
+                                No degree programmes configured in this campus.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Academic Framework & Institutional Guidelines Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-3 px-3.5">
+            <h6 class="fw-bold mb-0 text-body">Curricular Framework & Accreditation Standards</h6>
+            <small class="text-secondary text-xs">Guidelines governing degree structures and credit allocation across {{ active_workspace.name }}</small>
+        </div>
+        <div class="card-body px-3.5 pt-1 pb-3">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-primary-subtle text-primary"><i class="bi bi-mortarboard-fill text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Undergraduate Framework</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-2">
+                            Standard 4-year programmes structured into 8 semesters with 160 cumulative academic credits, core foundational labs, and semester-long capstone projects.
+                        </p>
+                        <div class="d-flex align-items-center gap-1.5 text-xxs text-muted">
+                            <i class="bi bi-check2-circle text-success"></i> 20 Credits / Semester Avg.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-info-subtle text-info"><i class="bi bi-journal-check text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Postgraduate Framework</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-2">
+                            Intensive 2-year masters curriculum comprising 4 semesters, advanced research colloquia, and an independently supervised graduate dissertation.
+                        </p>
+                        <div class="d-flex align-items-center gap-1.5 text-xxs text-muted">
+                            <i class="bi bi-check2-circle text-info"></i> 80 Cumulative Credits
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-success-subtle text-success"><i class="bi bi-shield-check text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Quality & Accreditation</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-2">
+                            Curricula adhere to Outcome-Based Education (OBE) principles with automated course-outcome to programme-outcome mapping in Aurevia Campus.
+                        </p>
+                        <div class="d-flex align-items-center gap-1.5 text-xxs text-muted">
+                            <i class="bi bi-shield-lock text-success"></i> Institutional Compliance
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

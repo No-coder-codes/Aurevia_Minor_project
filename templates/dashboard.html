@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if user.student_profile %}Student Workspace{% else %}Executive Campus Dashboard{% endif %} | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <!-- Top Welcome & Institutional Banner -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h4 mb-0 text-body fw-bold">{% if user.student_profile %}Student & Academic Workspace{% else %}Executive Campus Dashboard{% endif %}</h1>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 text-xs">
+                    {% if user.student_profile %}Student{% if user.student_profile.cr_role and user.student_profile.cr_role.is_active %} • Class Rep{% endif %}{% else %}{{ user.get_role_display|default:user.role|title }}{% endif %}
+                </span>
+            </div>
+            <p class="text-xs text-secondary mb-0">
+                {% if user.student_profile %}Academic overview & class coordination for <strong>{{ active_workspace.name }}</strong>{% else %}Institutional oversight & operations for <strong>{{ active_workspace.name }}</strong>{% endif %}
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+            {% if not user.student_profile %}
+            <a href="{% url 'academics:admissions_list' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-person-check me-1"></i> Admissions
+            </a>
+            <a href="{% url 'project_add' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i> New Project
+            </a>
+            <a href="{% url 'export_projects' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-download me-1"></i> Export Data
+            </a>
+            {% else %}
+            {% if user.student_profile.cr_role and user.student_profile.cr_role.is_active %}
+            <a href="{% url 'academics:cr_portal' %}" class="btn btn-warning btn-sm fw-semibold">
+                <i class="bi bi-star-fill me-1"></i> CR Portal
+            </a>
+            {% endif %}
+            <a href="{% url 'academics:student_roster' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-people me-1"></i> Class Roster
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Student & Class Representative Quick Action Banner -->
+    {% if user.student_profile %}
+    <div class="card border-0 shadow-sm mb-3 border-start border-warning border-4" style="background-color: var(--bs-tertiary-bg);">
+        <div class="card-body p-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-2.5">
+                <div class="p-2 rounded-circle bg-warning-subtle text-warning flex-shrink-0">
+                    <i class="bi bi-mortarboard-fill fs-5"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h6 class="fw-bold mb-0 text-body text-sm">{{ user.get_full_name|default:user.username }}</h6>
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle text-xxs">
+                            {{ user.student_profile.programme.code|default:"Academic Programme" }} • {{ user.student_profile.division.name|default:"Section" }} (Sem {{ user.student_profile.current_semester }})
+                        </span>
+                    </div>
+                    <p class="text-xs text-secondary mb-0 mt-0.5">
+                        Roll / Student ID: <strong>{{ user.student_profile.student_id }}</strong> • Status: <span class="badge bg-success-subtle text-success text-xxs">{{ user.student_profile.get_enrollment_status_display }}</span>
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-shrink-0">
+                {% if user.student_profile.cr_role and user.student_profile.cr_role.is_active %}
+                <a href="{% url 'academics:cr_portal' %}" class="btn btn-warning btn-sm fw-semibold py-1 px-2.5 text-xs">
+                    <i class="bi bi-star-fill me-1"></i> Section CR Portal
+                </a>
+                {% endif %}
+                <a href="{% url 'academics:student_roster' %}" class="btn btn-outline-secondary btn-sm py-1 px-2.5 text-xs">
+                    <i class="bi bi-people me-1"></i> Peers Roster
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- College Operations KPI Cards -->
+    {% if college_stats %}
+    {% if user.student_profile %}
+    <!-- Student Perspective KPI Cards -->
+    <div class="row g-3 mb-3">
+        <div class="col-xl-3 col-md-6 col-6">
+            <a href="{% url 'academics:school_list' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-primary border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Schools & Faculty</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.schools_count }} <span class="fs-6 fw-normal text-muted">Schools</span></div>
+                    <small class="text-primary mt-1 d-block">{{ college_stats.academic_depts_count }} Academic Depts <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <a href="{% url 'academics:programme_list' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-info border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Degree Programmes</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.programmes_count }} <span class="fs-6 fw-normal text-muted">Offerings</span></div>
+                    <small class="text-info mt-1 d-block">Curricula & Courses <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <a href="{% url 'academics:class_list' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-warning border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Class Cohorts</div>
+                    <div class="fs-4 fw-bold text-body">Sections <span class="fs-6 fw-normal text-muted">A / B</span></div>
+                    <small class="text-warning mt-1 d-block">Cohort Divisions <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <a href="{% url 'academics:student_roster' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-success border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Enrolled Students</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.students_count }} <span class="fs-6 fw-normal text-muted">Active</span></div>
+                    <small class="text-success mt-1 d-block">Class Directory <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <!-- Executive Perspective KPI Cards -->
+    <div class="row g-3 mb-3">
+        <div class="col-xl-2 col-md-4 col-6">
+            <a href="{% url 'academics:school_list' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-primary border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Schools & Faculty</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.schools_count }} <span class="fs-6 fw-normal text-muted">Schools</span></div>
+                    <small class="text-primary mt-1 d-block">{{ college_stats.academic_depts_count }} Academic Depts <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <a href="{% url 'academics:programme_list' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-info border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Programmes</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.programmes_count }} <span class="fs-6 fw-normal text-muted">Degrees</span></div>
+                    <small class="text-info mt-1 d-block">Curricula & Courses <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <a href="{% url 'academics:student_roster' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-success border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Enrolled Students</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.students_count }} <span class="fs-6 fw-normal text-muted">Active</span></div>
+                    <small class="text-success mt-1 d-block">Student Roster <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <a href="{% url 'academics:admin_directory' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-warning border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Hostels & Facilities</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.hostels_count }} <span class="fs-6 fw-normal text-muted">Halls</span></div>
+                    <small class="text-warning mt-1 d-block">600 Total Beds <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <a href="{% url 'academics:admissions_list' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-danger border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Admissions Pipeline</div>
+                    <div class="fs-4 fw-bold text-body">{{ college_stats.admissions_pending }} <span class="fs-6 fw-normal text-muted">Pending</span></div>
+                    <small class="text-danger mt-1 d-block">Dual-Reporting <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-2 col-md-4 col-6">
+            <a href="{% url 'task_list' %}" class="text-decoration-none">
+                <div class="card p-3 h-100 hover-card border-0 shadow-sm border-start border-secondary border-4">
+                    <div class="text-xs text-secondary text-uppercase fw-semibold mb-1">Operations & Tasks</div>
+                    <div class="fs-4 fw-bold text-body">{{ total_projects }} <span class="fs-6 fw-normal text-muted">Projects</span></div>
+                    <small class="text-secondary mt-1 d-block">{{ pending_projects }} Active Orders <i class="bi bi-arrow-right"></i></small>
+                </div>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Risk Intelligence Banner (Executive Only) -->
+    {% if not user.student_profile and off_track_count > 0 or not user.student_profile and at_risk_count > 0 %}
+    <div class="card border-0 shadow-sm mb-3 border-start border-warning border-4">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-start gap-3">
+                <div class="p-2 rounded-circle bg-warning-subtle text-warning flex-shrink-0">
+                    <i class="bi bi-shield-exclamation fs-4"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="fw-bold text-body mb-1">Aurevia Campus Risk Intelligence Alerts</h6>
+                    <p class="text-sm text-secondary mb-2">
+                        There are <strong>{{ off_track_count }}</strong> projects <span class="text-danger fw-bold">Off Track</span> and <strong>{{ at_risk_count }}</strong> projects <span class="text-warning fw-bold">At Risk</span> based on task completion and deadline velocity.
+                    </p>
+                    {% if top_recommendations %}
+                    <div class="bg-body-tertiary p-2.5 rounded text-xs text-body border">
+                        <span class="fw-bold text-danger me-1"><i class="bi bi-lightbulb me-1"></i> Engine Recommendation:</span>
+                        {{ top_recommendations.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Projects & Operations Table -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-transparent border-0 pt-3 px-3.5 d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold mb-0 text-body">Campus Operations & Infrastructure Projects</h6>
+                <small class="text-secondary text-xs">Cross-department projects and work allocations</small>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle py-0.5 px-2 text-xs" type="button" data-bs-toggle="dropdown">
+                    Status{% if request.GET.status %}: {{ request.GET.status|capfirst }}{% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                    <li><a class="dropdown-item text-xs {% if not request.GET.status %}active{% endif %}" href="{% url 'dashboard' %}">All Projects</a></li>
+                    <li><a class="dropdown-item text-xs {% if request.GET.status == 'active' %}active{% endif %}" href="?status=active">Active Only</a></li>
+                    <li><a class="dropdown-item text-xs {% if request.GET.status == 'completed' %}active{% endif %}" href="?status=completed">Completed</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="table-responsive px-3.5 pb-3">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-2">Project Title</th>
+                        <th>Project Manager</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th>Risk Analysis</th>
+                        <th>Timeline</th>
+                        <th class="text-end pe-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    <tr class="table-row-hover">
+                        <td class="ps-2">
+                            <a href="{% url 'project_detail' project.pk %}" class="fw-bold text-body text-decoration-none hover-primary">
+                                {{ project.title }}
+                            </a>
+                            <div class="text-xs text-muted">{{ project.description|truncatewords:6|default:"No description" }}</div>
+                        </td>
+                        <td>
+                            <div class="text-sm fw-semibold text-body">
+                                {{ project.manager.get_full_name|default:project.manager.username|default:"Unassigned" }}
+                            </div>
+                        </td>
+                        <td style="width: 180px;">
+                            <div class="progress" style="height: 6px; background-color: var(--border-color);">
+                                <div class="progress-bar bg-primary" role="progressbar" data-progress="{{ project.progress_percentage }}" style="width: {{ project.progress_percentage }}%; border-radius: 6px;"></div>
+                            </div>
+                            <div class="text-xs mt-1 text-muted text-end">{{ project.progress_percentage }}% Complete</div>
+                        </td>
+                        <td>
+                            {% if project.status == 'active' %}
+                                <span class="badge badge-status badge-active">Active</span>
+                            {% elif project.status == 'completed' %}
+                                <span class="badge badge-status badge-approved">Completed</span>
+                            {% else %}
+                                <span class="badge badge-status badge-review">Planning</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if project.risk_analysis.status == 'on_track' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 text-xs">On Track</span>
+                            {% elif project.risk_analysis.status == 'at_risk' %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5 text-xs">At Risk</span>
+                            {% elif project.risk_analysis.status == 'off_track' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 text-xs">Off Track</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5 text-xs">Normal</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if project.remaining_days is not None %}
+                                <span class="{% if project.remaining_days < 7 %}text-danger fw-bold{% else %}text-secondary{% endif %} text-xs">
+                                    <i class="bi bi-clock me-1"></i>{{ project.remaining_days }} Days Left
+                                </span>
+                            {% else %}
+                                <span class="text-xs text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-2">
+                            <a href="{% url 'project_detail' project.pk %}" class="btn btn-sm btn-outline-primary py-0.5 px-2 text-xs">
+                                View <i class="bi bi-chevron-right ms-0.5"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-3.5 text-muted small">
+                            <div class="d-flex flex-column align-items-center justify-content-center py-1">
+                                <i class="bi bi-folder2-open fs-3 text-secondary mb-1"></i>
+                                <div class="fw-semibold text-xs text-body">
+                                    {% if user.student_profile %}
+                                    No Operational Projects Allocated
+                                    {% else %}
+                                    No Campus Projects Found
+                                    {% endif %}
+                                </div>
+                                <p class="text-xxs text-secondary mb-0 mt-0.5">
+                                    {% if user.student_profile %}
+                                    Student accounts participate in academic coursework; campus infrastructure projects are managed by operations staff.
+                                    {% else %}
+                                    No campus operations projects currently match the active filters.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bottom Two Columns: Recent Activities & Quick Navigation -->
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-3.5 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-body">Recent Campus Activity & Audit Log</h6>
+                    {% if not user.student_profile %}
+                    <a href="{% url 'activity_history' %}" class="btn btn-sm btn-outline-secondary py-0.5 px-2 text-xs">View All</a>
+                    {% endif %}
+                </div>
+                <div class="card-body px-3.5 pt-1 d-flex flex-column justify-content-center">
+                    <div class="timeline mt-1">
+                        {% for log in recent_activities %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-sm text-body">{{ log.user.get_full_name|default:log.user.username|title }}</span>
+                                <small class="text-muted text-xxs">{{ log.timestamp|timesince }} ago</small>
+                            </div>
+                            <div class="text-xs text-secondary mt-0.5">{{ log.action }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3 my-auto">
+                            <div class="p-2 rounded-circle bg-body-tertiary text-secondary d-inline-flex mb-1.5">
+                                <i class="bi bi-clock-history fs-4"></i>
+                            </div>
+                            <div class="fw-semibold text-xs text-body">Audit Trail Synchronized</div>
+                            <small class="text-secondary text-xxs d-block mt-0.5">
+                                No unread activity events recorded in this workspace. All administrative actions and updates log automatically.
+                            </small>
+                            {% if not user.student_profile %}
+                            <a href="{% url 'activity_history' %}" class="btn btn-sm btn-outline-secondary mt-2 px-2.5 py-1 text-xxs">View Complete Trail</a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-3.5">
+                    <h6 class="fw-bold mb-0 text-body">{% if user.student_profile %}Quick Academic Actions{% else %}Quick Institutional Actions{% endif %}</h6>
+                </div>
+                <div class="card-body px-3.5 pt-1">
+                    {% if user.student_profile %}
+                    <!-- Student-Authorised Quick Actions -->
+                    <div class="list-group list-group-flush">
+                        {% if user.student_profile.cr_role and user.student_profile.cr_role.is_active %}
+                        <a href="{% url 'academics:cr_portal' %}" class="list-group-item list-group-item-action border-bottom px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-warning-subtle text-warning me-3">
+                                <i class="bi bi-star-fill fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Class Representative (CR) Portal</div>
+                                <small class="text-muted text-xs">Section {{ user.student_profile.division.name }} coordination & faculty directory</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'academics:student_roster' %}" class="list-group-item list-group-item-action border-bottom px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-success-subtle text-success me-3">
+                                <i class="bi bi-people fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Student Rosters & Divisions</div>
+                                <small class="text-muted text-xs">Filter enrolled peers by degree programme and section</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                        <a href="{% url 'academics:programme_list' %}" class="list-group-item list-group-item-action border-bottom px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-info-subtle text-info me-3">
+                                <i class="bi bi-journal-bookmark fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Degree Programmes & Curricula</div>
+                                <small class="text-muted text-xs">Review syllabus, degree requirements, and semesters</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                        <a href="{% url 'academics:faculty_list' %}" class="list-group-item list-group-item-action px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-primary-subtle text-primary me-3">
+                                <i class="bi bi-person-badge fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Faculty & Instructors Directory</div>
+                                <small class="text-muted text-xs">Locate faculty offices, departments, and contacts</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <!-- Executive / Staff Quick Actions -->
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'academics:admissions_list' %}" class="list-group-item list-group-item-action border-bottom px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-warning-subtle text-warning me-3">
+                                <i class="bi bi-person-check fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Admissions Dual-Reporting Queue</div>
+                                <small class="text-muted text-xs">Verify credentials and submit faculty evaluations</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                        <a href="{% url 'academics:student_roster' %}" class="list-group-item list-group-item-action border-bottom px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-success-subtle text-success me-3">
+                                <i class="bi bi-people fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Student Rosters & Divisions</div>
+                                <small class="text-muted text-xs">Filter enrolled students by programme and section</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                        <a href="{% url 'academics:roster_import' %}" class="list-group-item list-group-item-action border-bottom px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-primary-subtle text-primary me-3">
+                                <i class="bi bi-file-earmark-spreadsheet fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Bulk CSV / Excel Roster Import</div>
+                                <small class="text-muted text-xs">Import batch student enrollment records atomically</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                        <a href="{% url 'task_add' %}" class="list-group-item list-group-item-action px-0 py-2.5 d-flex align-items-center bg-transparent">
+                            <div class="p-2 rounded-circle bg-info-subtle text-info me-3">
+                                <i class="bi bi-plus-circle fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body text-sm">Create Operational Task</div>
+                                <small class="text-muted text-xs">Assign maintenance or IT work orders</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted text-xs"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

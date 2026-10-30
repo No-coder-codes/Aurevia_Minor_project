@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ dept.name }} | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 text-sm">
+                    <li class="breadcrumb-item"><a href="{% url 'academics:admin_directory' %}" class="text-decoration-none">Administrative Directory</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ dept.code }}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1 text-body fw-bold">{{ dept.name }}</h1>
+            <p class="text-sm text-secondary mb-0">Category: <span class="badge bg-secondary-subtle text-secondary">{{ dept.get_category_display }}</span></p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-sm-0">
+            {% if dept.category == 'admissions' %}
+            <a href="{% url 'academics:admissions_list' %}" class="btn btn-warning text-dark btn-sm">
+                <i class="bi bi-person-lines-fill me-1"></i> Admissions Pipeline
+            </a>
+            {% endif %}
+            <a href="{% url 'academics:admin_directory' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Directory
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-primary-subtle text-primary me-3">
+                        <i class="bi bi-person-badge fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-secondary text-uppercase fw-semibold">In-Charge / Head</div>
+                        <div class="fs-5 fw-bold text-body">
+                            {% if dept.head %}
+                                {{ dept.head.get_full_name|default:dept.head.username }}
+                            {% else %}
+                                <span class="text-muted fs-6 fst-italic">Unassigned</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if dept.category == 'boys_hostel' or dept.category == 'girls_hostel' %}
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-info-subtle text-info me-3">
+                        <i class="bi bi-door-open fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-secondary text-uppercase fw-semibold">Facility Capacity</div>
+                        <div class="fs-5 fw-bold text-body">{{ dept.capacity|default:0 }} Beds</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-success-subtle text-success me-3">
+                        <i class="bi bi-shield-check fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-secondary text-uppercase fw-semibold">Residential Status</div>
+                        <div class="fs-5 fw-bold text-body">Active & Operational</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elif dept.category == 'admissions' %}
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-warning-subtle text-warning me-3">
+                        <i class="bi bi-inbox fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-secondary text-uppercase fw-semibold">Total Applications</div>
+                        <div class="fs-5 fw-bold text-body">{{ admissions_summary.total|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-primary-subtle text-primary me-3">
+                        <i class="bi bi-hourglass-split fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-secondary text-uppercase fw-semibold">Pending Review</div>
+                        <div class="fs-5 fw-bold text-body">
+                            {{ admissions_summary.pending_admin|add:admissions_summary.pending_academic|default:0 }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-info-subtle text-info me-3">
+                        <i class="bi bi-envelope-at fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-secondary text-uppercase fw-semibold">Contact Email</div>
+                        <div class="fs-6 fw-bold text-body text-truncate">{{ dept.contact_email|default:"None listed" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <div class="p-3 rounded-circle bg-secondary-subtle text-secondary me-3">
+                        <i class="bi bi-telephone fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-secondary text-uppercase fw-semibold">Contact Phone</div>
+                        <div class="fs-6 fw-bold text-body">{{ dept.contact_phone|default:"None listed" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Description & Staff Roles -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-4">
+                    <h5 class="fw-bold mb-0 text-body">Operational Mandate & Description</h5>
+                </div>
+                <div class="card-body px-4">
+                    <p class="text-secondary mb-3">{{ dept.description|default:"No detailed description currently recorded for this operational unit." }}</p>
+                    
+                    <h6 class="fw-bold text-body mt-4 mb-2">Assigned Staff & Roles</h6>
+                    <div class="list-group list-group-flush">
+                        {% for role_assign in staff_roles %}
+                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent border-bottom">
+                            <div>
+                                <span class="fw-semibold text-body">{{ role_assign.user.get_full_name|default:role_assign.user.username }}</span>
+                                <div class="text-xs text-muted">{{ role_assign.user.email }}</div>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary">{{ role_assign.get_role_display }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="text-muted small fst-italic py-2">No additional staff role assignments mapped.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operational Tasks & Work Orders -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-body">
+                        {% if dept.category == 'boys_hostel' or dept.category == 'girls_hostel' %}
+                            Facility & Maintenance Work Orders
+                        {% elif dept.category == 'it' %}
+                            IT Service Requests & Infrastructure Tasks
+                        {% else %}
+                            Department Operations Tasks
+                        {% endif %}
+                    </h5>
+                    <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-secondary">All Tasks</a>
+                </div>
+                <div class="card-body px-4">
+                    <div class="list-group list-group-flush">
+                        {% for task in facility_tasks %}
+                        <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent border-bottom">
+                            <div>
+                                <a href="{% url 'task_edit' task.pk %}" class="fw-semibold text-body text-decoration-none hover-primary">{{ task.title }}</a>
+                                <div class="text-xs text-muted">
+                                    Project: {{ task.project.title }} • Due: {{ task.due_date|default:"No deadline" }}
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge 
+                                    {% if task.status == 'done' %}bg-success-subtle text-success
+                                    {% elif task.status == 'in_progress' %}bg-primary-subtle text-primary
+                                    {% elif task.status == 'review' %}bg-warning-subtle text-warning
+                                    {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                    {{ task.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-clipboard-check fs-2 d-block mb-2 text-secondary"></i>
+                            No active work orders or support tasks recorded in this workspace.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Administrative Directory | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h4 mb-0 text-body fw-bold">Administrative Directory</h1>
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-0.5 text-xs">Operations & Services</span>
+            </div>
+            <p class="text-xs text-secondary mb-0">Non-academic operations, hostels, student services, and facilities under <strong>{{ active_workspace.name }}</strong></p>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+            <a href="{% url 'academics:hierarchy_overview' %}" class="btn btn-outline-secondary btn-sm py-1 px-2.5 text-xs">
+                <i class="bi bi-diagram-3 me-1"></i> Hierarchy View
+            </a>
+            <a href="{% url 'academics:admissions_list' %}" class="btn btn-primary btn-sm py-1 px-2.5 text-xs">
+                <i class="bi bi-person-check me-1"></i> Admissions Desk
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Metrics Strip -->
+    <div class="row g-3 mb-3">
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-primary border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Operational Units</div>
+                <div class="fs-4 fw-bold text-body">{{ departments|length }} <span class="fs-6 fw-normal text-muted">Facilities</span></div>
+                <small class="text-primary mt-1 d-block text-xxs"><i class="bi bi-buildings me-1"></i>Campus Offices & Hostels</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-info border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Residential Facilities</div>
+                <div class="fs-4 fw-bold text-body">2 <span class="fs-6 fw-normal text-muted">Hostels</span></div>
+                <small class="text-info mt-1 d-block text-xxs"><i class="bi bi-houses me-1"></i>Boys & Girls Halls</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-warning border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Dual-Reporting Hub</div>
+                <div class="fs-4 fw-bold text-body">Admissions <span class="fs-6 fw-normal text-muted">Active</span></div>
+                <small class="text-warning mt-1 d-block text-xxs"><i class="bi bi-arrow-left-right me-1"></i>Registrar & Faculty Linked</small>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 col-6">
+            <div class="card metric-strip-card border-0 shadow-sm border-start border-success border-4 p-3">
+                <div class="text-xxs text-secondary text-uppercase fw-semibold mb-1">Administration Head</div>
+                <div class="fs-4 fw-bold text-body">Registrar <span class="fs-6 fw-normal text-muted">Office</span></div>
+                <small class="text-success mt-1 d-block text-xxs"><i class="bi bi-shield-check me-1"></i>Operational Governance</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Administrative Departments Table -->
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-header bg-transparent border-0 pt-3 px-3.5 d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="fw-bold mb-0 text-body">Operational Departments & Facilities Roster</h6>
+                <small class="text-secondary text-xs">Campus offices, wardens, resident capacity, and inquiries</small>
+            </div>
+            <span class="badge bg-body-tertiary text-secondary border px-2 py-1 text-xs">{{ departments|length }} Units Registered</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-body-tertiary">
+                        <tr>
+                            <th class="border-0 px-3.5 text-xs text-secondary text-uppercase fw-semibold">Department / Facility</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">Category</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">In-Charge / Warden</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">Contact Details</th>
+                            <th class="border-0 text-xs text-secondary text-uppercase fw-semibold">Capacity / Details</th>
+                            <th class="border-0 text-end pe-3.5 text-xs text-secondary text-uppercase fw-semibold">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr class="table-row-hover">
+                            <td class="px-3.5 py-2.5">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-2 rounded-circle me-2.5 flex-shrink-0
+                                        {% if dept.category == 'boys_hostel' or dept.category == 'girls_hostel' %}bg-info-subtle text-info
+                                        {% elif dept.category == 'it' %}bg-primary-subtle text-primary
+                                        {% elif dept.category == 'finance' %}bg-success-subtle text-success
+                                        {% elif dept.category == 'admissions' %}bg-warning-subtle text-warning
+                                        {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                        <i class="bi 
+                                            {% if dept.category == 'boys_hostel' or dept.category == 'girls_hostel' %}bi-houses
+                                            {% elif dept.category == 'it' %}bi-laptop
+                                            {% elif dept.category == 'finance' %}bi-cash-coin
+                                            {% elif dept.category == 'library' %}bi-book
+                                            {% elif dept.category == 'admissions' %}bi-person-check
+                                            {% else %}bi-building{% endif %} fs-6"></i>
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'academics:admin_detail' dept.pk %}" class="fw-bold text-body text-decoration-none hover-primary text-sm">{{ dept.name }}</a>
+                                        <div class="text-muted text-xxs">{{ dept.code }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle text-xxs px-2 py-0.5">{{ dept.get_category_display }}</span>
+                            </td>
+                            <td>
+                                {% if dept.head %}
+                                <div class="fw-semibold text-body text-xs">{{ dept.head.get_full_name|default:dept.head.username }}</div>
+                                {% else %}
+                                <span class="text-muted text-xs fst-italic">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="text-xxs text-body">
+                                    {% if dept.contact_email %}
+                                    <div><i class="bi bi-envelope me-1 text-muted"></i> {{ dept.contact_email }}</div>
+                                    {% endif %}
+                                    {% if dept.contact_phone %}
+                                    <div><i class="bi bi-telephone me-1 text-muted"></i> {{ dept.contact_phone }}</div>
+                                    {% endif %}
+                                    {% if not dept.contact_email and not dept.contact_phone %}
+                                    <span class="text-muted fst-italic">—</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if dept.capacity %}
+                                <span class="badge bg-body-tertiary text-body border text-xxs px-2 py-1">
+                                    <i class="bi bi-door-closed me-1 text-primary"></i> {{ dept.capacity }} beds capacity
+                                </span>
+                                {% else %}
+                                <span class="text-xxs text-muted">{{ dept.description|truncatewords:6|default:"Operational Unit" }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-3.5">
+                                <a href="{% url 'academics:admin_detail' dept.pk %}" class="btn btn-sm btn-outline-primary py-0.5 px-2 text-xs">
+                                    Manage <i class="bi bi-chevron-right ms-0.5"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted small">
+                                <i class="bi bi-buildings fs-3 text-secondary d-block mb-1"></i>
+                                No administrative departments configured in this workspace.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Administrative Standards & Service Delivery Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-3 px-3.5">
+            <h6 class="fw-bold mb-0 text-body">Campus Administrative Operations & Service Level Commitments</h6>
+            <small class="text-secondary text-xs">Support protocols governing student accommodation, computing infrastructure, and finance</small>
+        </div>
+        <div class="card-body px-3.5 pt-1 pb-3">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-info-subtle text-info"><i class="bi bi-houses-fill text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Residential Life & Hostels</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-2">
+                            Dedicated residential wardens supervise campus accommodation, student security, hygienic dining facilities, and 24/7 emergency response protocols.
+                        </p>
+                        <div class="d-flex align-items-center gap-1.5 text-xxs text-muted">
+                            <i class="bi bi-shield-check text-info"></i> 24/7 Warden Coverage
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-primary-subtle text-primary"><i class="bi bi-laptop text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">IT & Campus Networks</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-2">
+                            Aurevia IT Operations manages campus gigabit fiber connectivity, lab virtual machines, multi-factor identity directories, and portal access.
+                        </p>
+                        <div class="d-flex align-items-center gap-1.5 text-xxs text-muted">
+                            <i class="bi bi-hdd-network text-primary"></i> Enterprise Infrastructure
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3 rounded border bg-body-tertiary h-100">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="p-1.5 rounded bg-warning-subtle text-warning"><i class="bi bi-person-check-fill text-xs"></i></span>
+                            <span class="fw-bold text-xs text-body">Admissions Governance</span>
+                        </div>
+                        <p class="text-xxs text-secondary mb-2">
+                            The Admissions Office processes candidate verification in tandem with academic departmental viva reviews, ensuring seamless student intake.
+                        </p>
+                        <div class="d-flex align-items-center gap-1.5 text-xxs text-muted">
+                            <i class="bi bi-arrow-repeat text-warning"></i> Dual-Reporting Integrated
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Class Representative Portal | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <div class="d-flex align-items-center mb-1">
+                <span class="badge bg-warning-subtle text-warning me-2"><i class="bi bi-star-fill"></i> Class Representative Portal</span>
+                <h1 class="h3 mb-0 text-body fw-bold">{{ division.programme.code }} - {{ division.name }}</h1>
+            </div>
+            <p class="text-sm text-secondary mb-0">Class coordination, roster view, and instructor communications (Semester {{ division.semester }}, {{ division.academic_year }})</p>
+        </div>
+        <a href="{% url 'academics:student_roster' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Full Rosters
+        </a>
+    </div>
+
+    <!-- Notice banner on CR Boundary -->
+    <div class="alert alert-info border-0 shadow-sm mb-4 p-3">
+        <i class="bi bi-shield-check me-2 text-primary"></i>
+        <span class="text-xs text-body">
+            <strong>CR Scope Policy:</strong> Class Representatives can view class roster members, assigned faculty contacts, and coordination notices. Official marks, billing, and enrollment mutations are restricted to faculty and administration.
+        </span>
+    </div>
+
+    <div class="row">
+        <!-- Class Roster -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold text-body"><i class="bi bi-people me-2 text-primary"></i>Division Class Roster</h6>
+                    <span class="badge bg-primary-subtle text-primary">{{ class_roster.count }} Enrolled</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 px-4">Student</th>
+                                    <th class="border-0">Student ID</th>
+                                    <th class="border-0">Status</th>
+                                    <th class="border-0 text-end px-4">Contact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for st in class_roster %}
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="fw-bold text-body text-sm">{{ st.user.get_full_name|default:st.user.username }}</div>
+                                        <small class="text-muted">@{{ st.user.username }}</small>
+                                    </td>
+                                    <td><span class="badge bg-secondary-subtle text-secondary">{{ st.student_id }}</span></td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success">{{ st.get_enrollment_status_display }}</span>
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <a href="mailto:{{ st.user.email }}" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Send Email">
+                                            <i class="bi bi-envelope"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted small">No students enrolled in this division yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Course Instructors -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-transparent py-3 border-bottom">
+                    <h6 class="m-0 fw-bold text-body"><i class="bi bi-person-video3 me-2 text-info"></i>Course Instructors</h6>
+                </div>
+                <div class="card-body">
+                    {% if teaching_faculty %}
+                    <div class="list-group list-group-flush">
+                        {% for alloc in teaching_faculty %}
+                        <div class="list-group-item px-0 py-2 border-bottom">
+                            <div class="fw-bold text-body text-sm">{{ alloc.subject.name }}</div>
+                            <small class="badge bg-primary-subtle text-primary mb-1">{{ alloc.subject.code }}</small>
+                            <div class="text-xs text-secondary mt-1">
+                                <i class="bi bi-person me-1"></i> {{ alloc.faculty.user.get_full_name|default:alloc.faculty.user.username }}
+                            </div>
+                            {% if alloc.schedule_details %}
+                            <small class="text-muted text-xxs d-block"><i class="bi bi-clock me-1"></i> {{ alloc.schedule_details }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        No faculty allocated to this division yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

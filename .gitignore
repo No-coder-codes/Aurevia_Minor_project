@@ -1,0 +1,34 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+
+# Python / Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+*.backup*
+
+# Media and uploaded documents
+media/
+project_documents/
+
+# Backups
+backup_*/
+
+# IDE / OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

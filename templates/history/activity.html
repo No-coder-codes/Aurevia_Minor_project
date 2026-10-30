@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity History | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="animate-in">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-body fw-bold">Audit & Activity Log</h1>
+            <p class="text-sm text-secondary mb-0">System events, state transitions, and audit records for <strong>{{ active_workspace.name }}</strong></p>
+        </div>
+        <button class="btn btn-outline-secondary btn-sm shadow-sm" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i> Print Log
+        </button>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent py-3">
+                    <h6 class="m-0 fw-bold text-primary"><i class="bi bi-clock-history me-2"></i>Chronological Event Feed</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="activity-timeline">
+                        {% for log in logs %}
+                        <div class="activity-item pb-4 border-bottom mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-primary-subtle text-primary me-2">{{ log.user.username|title }}</span> 
+                                    <span class="text-body fw-semibold text-sm">{{ log.action }}</span>
+                                </div>
+                                <span class="text-xs text-muted">{{ log.timestamp|date:"M d, Y • H:i" }}</span>
+                            </div>
+                            <div class="text-xs text-secondary mt-1">
+                                <span class="text-muted">Entity:</span> <code>{{ log.target_content_type }}</code> (ID: {{ log.target_object_id|default:"N/A" }})
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-clock-history fs-1 text-secondary mb-3 d-block opacity-50"></i>
+                            <p class="text-muted small">No activity logs recorded yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination pagination-sm justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                            {% endif %}
+                            <li class="page-item active"><a class="page-link">{{ page_obj.number }}</a></li>
+                            {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

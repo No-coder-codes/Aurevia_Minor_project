@@ -1,0 +1,1079 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Operations Tasks | Aurevia Campus{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h3 class="fw-700 text-body">Task Management</h3>
+    <div class="d-flex gap-3 align-items-center">
+        <!-- View Toggle Buttons -->
+        <div class="btn-group shadow-sm" role="group" aria-label="View Toggle">
+            <button type="button" class="btn btn-outline-primary btn-sm active" id="btn-list-view">
+                <i class="bi bi-list-task me-1"></i> List View
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="btn-board-view">
+                <i class="bi bi-kanban me-1"></i> Board View
+            </button>
+        </div>
+        <a href="{% url 'task_add' %}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Add Task
+        </a>
+    </div>
+</div>
+
+<!-- LIST VIEW CONTAINER -->
+<div class="row" id="list-view-container">
+    <div class="col-12">
+        <div class="card table-container border-0 shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold text-primary m-0">All Assigned Tasks</h5>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" style="width: 150px;" id="filterStatus">
+                        <option value="all" selected>Status: All</option>
+                        <option value="todo">To Do</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="review">Review</option>
+                        <option value="done">Done</option>
+                    </select>
+                    <select class="form-select form-select-sm" style="width: 150px;" id="filterPriority">
+                        <option value="all" selected>Priority: All</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="taskTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Task Title</th>
+                            <th>Project</th>
+                            <th>Assignee</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Deadline</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr class="task-row" data-status="{{ task.status }}" data-priority="{{ task.priority }}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="fw-bold text-body">{{ task.title }}</div>
+                                <small class="text-secondary">{{ task.description|truncatewords:5 }}</small>
+                            </td>
+                            <td class="text-sm fw-600 text-primary">
+                                <a href="{% url 'project_detail' task.project.pk %}" class="text-decoration-none">{{ task.project.title }}</a>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="https://ui-avatars.com/api/?name={{ task.assignee.username }}&background=858796&color=fff" alt="Assignee" width="24" height="24" class="rounded-circle me-2">
+                                    <span class="text-sm text-body">{{ task.assignee.username }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm border-0 fw-600 task-priority-select select-priority-{{ task.priority }}" data-task-id="{{ task.id }}" style="width: 110px;">
+                                    <option value="low" {% if task.priority == 'low' %}selected{% endif %}>Low</option>
+                                    <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>Medium</option>
+                                    <option value="high" {% if task.priority == 'high' %}selected{% endif %}>High</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select form-select-sm border-0 fw-600 task-status-select select-status-{{ task.status }}" data-task-id="{{ task.id }}" style="width: 130px;">
+                                    <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>To Do</option>
+                                    <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="review" {% if task.status == 'review' %}selected{% endif %}>Review</option>
+                                    <option value="done" {% if task.status == 'done' %}selected{% endif %}>Done</option>
+                                </select>
+                            </td>
+                            <td class="text-sm text-body">
+                                {% if task.due_date %}
+                                    {{ task.due_date|date:"M d, Y" }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'task_edit' task.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'task_delete' task.pk %}" class="btn btn-sm btn-light border p-1 px-2 text-danger ms-1" title="Delete"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="8" class="text-center py-5">
+                                <div class="d-flex flex-column align-items-center justify-content-center text-muted">
+                                    <i class="bi bi-card-checklist fs-1 mb-3 text-primary" style="opacity: 0.5;"></i>
+                                    <h6 class="fw-bold mb-1">No tasks yet</h6>
+                                    <p class="small mb-0">Create your first task to get started.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KANBAN BOARD CONTAINER -->
+<div id="board-view-container" class="d-none">
+    <div class="row g-3">
+        <!-- To Do Column -->
+        <div class="col-md-3">
+            <div class="kanban-column card border-0 shadow-sm p-3 bg-light-column" data-status="todo">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0 text-secondary"><i class="bi bi-circle me-2"></i>TO DO</h6>
+                    <span class="badge bg-secondary rounded-pill count-badge">0</span>
+                </div>
+                <div class="kanban-cards-container d-flex flex-column gap-2" style="min-height: 500px;">
+                    {% for task in tasks %}
+                        {% if task.status == 'todo' %}
+                            {% include 'tasks/includes/kanban_card.html' with task=task %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="col-md-3">
+            <div class="kanban-column card border-0 shadow-sm p-3 bg-light-column" data-status="in_progress">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0 text-primary"><i class="bi bi-play-circle me-2"></i>IN PROGRESS</h6>
+                    <span class="badge bg-primary rounded-pill count-badge">0</span>
+                </div>
+                <div class="kanban-cards-container d-flex flex-column gap-2" style="min-height: 500px;">
+                    {% for task in tasks %}
+                        {% if task.status == 'in_progress' %}
+                            {% include 'tasks/includes/kanban_card.html' with task=task %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Under Review Column -->
+        <div class="col-md-3">
+            <div class="kanban-column card border-0 shadow-sm p-3 bg-light-column" data-status="review">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0 text-warning"><i class="bi bi-eye me-2"></i>UNDER REVIEW</h6>
+                    <span class="badge bg-warning text-dark rounded-pill count-badge">0</span>
+                </div>
+                <div class="kanban-cards-container d-flex flex-column gap-2" style="min-height: 500px;">
+                    {% for task in tasks %}
+                        {% if task.status == 'review' %}
+                            {% include 'tasks/includes/kanban_card.html' with task=task %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div class="col-md-3">
+            <div class="kanban-column card border-0 shadow-sm p-3 bg-light-column" data-status="done">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold m-0 text-success"><i class="bi bi-check-circle me-2"></i>DONE</h6>
+                    <span class="badge bg-success rounded-pill count-badge">0</span>
+                </div>
+                <div class="kanban-cards-container d-flex flex-column gap-2" style="min-height: 500px;">
+                    {% for task in tasks %}
+                        {% if task.status == 'done' %}
+                            {% include 'tasks/includes/kanban_card.html' with task=task %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TASK DETAILS MODAL -->
+<div class="modal fade animate-in" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="background-color: var(--bg-secondary); color: var(--text-primary);">
+            <div class="modal-header border-bottom" style="border-bottom-color: var(--border-color) !important;">
+                <h5 class="modal-title fw-bold text-primary" id="modalTaskTitle">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="modalCloseBtn"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <!-- Left Column: Description, Subtasks, Comments -->
+                    <div class="col-lg-7 border-end" style="border-end-color: var(--border-color) !important;">
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-body mb-2"><i class="bi bi-justify-left me-2"></i>Description</h6>
+                            <p class="text-secondary small" id="modalTaskDesc" style="white-space: pre-wrap;">No description provided.</p>
+                        </div>
+                        
+                        <!-- Subtasks (Checklist) -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-body m-0"><i class="bi bi-check2-square me-2"></i>Subtasks</h6>
+                                <span class="badge bg-secondary rounded-pill" id="subtaskProgressBadge">0/0</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 6px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="subtaskProgressBar"></div>
+                            </div>
+                            <!-- Subtask List -->
+                            <div id="modalSubtaskList" class="d-flex flex-column gap-2 mb-2" style="max-height: 200px; overflow-y: auto;">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <!-- Add Subtask Input -->
+                            <div class="input-group input-group-sm mt-2">
+                                <input type="text" class="form-control" placeholder="Add subtask..." id="newSubtaskTitle">
+                                <button class="btn btn-outline-primary" type="button" id="btnAddSubtask">Add</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Comments -->
+                        <div>
+                            <h6 class="fw-bold text-body mb-3"><i class="bi bi-chat-text me-2"></i>Activity & Comments</h6>
+                            <div id="modalCommentsList" class="d-flex flex-column gap-3 mb-3" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <div class="input-group">
+                                <textarea class="form-control form-control-sm" rows="2" placeholder="Write a comment..." id="newCommentText"></textarea>
+                                <button class="btn btn-primary btn-sm px-3" type="button" id="btnPostComment">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Meta details, Time tracking, Blockers -->
+                    <div class="col-lg-5">
+                        <!-- Details Panel -->
+                        <div class="mb-4 p-3 rounded shadow-sm border" style="background-color: var(--bg-primary); border-color: var(--border-color) !important;">
+                            <h6 class="fw-bold text-body mb-3">Metadata</h6>
+                            <div class="d-flex flex-column gap-2 small">
+                                <div class="d-flex justify-content-between"><span class="text-secondary">Project:</span> <span class="fw-bold text-body" id="modalProjTitle">--</span></div>
+                                <div class="d-flex justify-content-between"><span class="text-secondary">Assignee:</span> <span class="fw-bold text-body" id="modalAssignee">--</span></div>
+                                <div class="d-flex justify-content-between"><span class="text-secondary">Priority:</span> <span class="fw-bold text-body" id="modalPriority">--</span></div>
+                                <div class="d-flex justify-content-between"><span class="text-secondary">Status:</span> <span class="fw-bold text-body" id="modalStatus">--</span></div>
+                                <div class="d-flex justify-content-between"><span class="text-secondary">Deadline:</span> <span class="fw-bold text-body" id="modalDeadline">--</span></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Time Tracker -->
+                        <div class="mb-4 p-3 rounded border" style="background-color: rgba(234, 179, 8, 0.05); border-color: rgba(234, 179, 8, 0.2) !important;">
+                            <h6 class="fw-bold text-warning mb-2"><i class="bi bi-clock-history me-2"></i>Time Tracker</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <div class="h4 fw-bold m-0 text-body" id="timeTrackerDisplay">00:00:00</div>
+                                    <small class="text-muted">Total logged: <span id="totalLoggedTime">0h 0m</span></small>
+                                </div>
+                                <button class="btn btn-warning text-dark fw-bold btn-sm" id="btnToggleTimer"><i class="bi bi-play-fill me-1"></i>Start</button>
+                            </div>
+                            <div id="modalTimeLogsList" class="d-flex flex-column gap-1" style="max-height: 100px; overflow-y: auto;">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                        
+                        <!-- Dependencies / Blockers -->
+                        <div class="p-3 rounded border" style="background-color: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2) !important;">
+                            <h6 class="fw-bold text-danger mb-2"><i class="bi bi-shield-slash me-2"></i>Blockers & Dependencies</h6>
+                            <div id="modalDependenciesList" class="d-flex flex-column gap-2 mb-2" style="max-height: 100px; overflow-y: auto;">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <div class="input-group input-group-sm mt-2">
+                                <select class="form-select form-select-sm" id="selectDependency">
+                                    <option value="" selected>Link dependency...</option>
+                                    <!-- Populate with other tasks -->
+                                </select>
+                                <button class="btn btn-outline-danger" type="button" id="btnAddDependency">Link</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+    <div id="toastNotification" class="toast align-items-center text-white border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center">
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                <span id="toastMessage">Changes saved successfully!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- STYLES -->
+<style>
+    /* Styling for the custom Select dropdowns in table */
+    select.task-priority-select, select.task-status-select {
+        border-radius: 20px;
+        padding-left: 12px;
+        padding-right: 25px;
+        background-position: right 8px center;
+        background-size: 12px 10px;
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+
+    /* Colors for Priorities */
+    select.select-priority-high { background-color: rgba(239, 68, 68, 0.15) !important; color: #ef4444 !important; }
+    select.select-priority-medium { background-color: rgba(234, 179, 8, 0.15) !important; color: #eab308 !important; }
+    select.select-priority-low { background-color: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
+
+    /* Colors for Statuses */
+    select.select-status-todo { background-color: rgba(100, 116, 139, 0.15) !important; color: #64748b !important; }
+    select.select-status-in_progress { background-color: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
+    select.select-status-review { background-color: rgba(234, 179, 8, 0.15) !important; color: #eab308 !important; }
+    select.select-status-done { background-color: rgba(34, 197, 94, 0.15) !important; color: #22c55e !important; }
+
+    /* Kanban specific styles */
+    .bg-light-column {
+        background-color: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        min-height: 600px;
+    }
+    [data-theme='dark'] .kanban-column {
+        background-color: #1e293b !important;
+    }
+    .kanban-cards-container {
+        transition: background-color 0.2s ease;
+        border-radius: 8px;
+        padding: 5px;
+    }
+    .kanban-cards-container.drag-over {
+        background-color: rgba(99, 102, 241, 0.05);
+        border: 2px dashed var(--primary-indigo);
+    }
+    .kanban-task-card {
+        cursor: grab;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .kanban-task-card:active {
+        cursor: grabbing;
+    }
+    .kanban-task-card.dragging {
+        opacity: 0.4;
+        transform: scale(0.95);
+    }
+</style>
+
+<!-- SCRIPTS -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Global Modal State
+        let currentTaskId = null;
+        let currentProjectTasks = [];
+        let timerInterval = null;
+        let currentTaskData = null;
+
+        // CSRF Token Helper
+        function getCSRFToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === 'csrftoken=') {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            return cookieValue || '{{ csrf_token }}';
+        }
+
+        // Toast Helper
+        const toastEl = document.getElementById('toastNotification');
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        function showNotification(message, type = 'success') {
+            document.getElementById('toastMessage').innerText = message;
+            toastEl.className = 'toast align-items-center text-white border-0 shadow ' + 
+                (type === 'success' ? 'bg-success' : 'bg-danger');
+            toast.show();
+        }
+
+        // 1. AJAX Status / Priority changes in List View
+        function updateTaskAttribute(taskId, data, selectElement = null, isStatus = true) {
+            return fetch(`/api/tasks/${taskId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Update failed");
+                return response.json();
+            })
+            .then(task => {
+                showNotification(`Task "${task.title}" updated successfully!`);
+                
+                // If update came from List View, update colors dynamically
+                if (selectElement) {
+                    if (isStatus) {
+                        selectElement.className = 'form-select form-select-sm border-0 fw-600 task-status-select select-status-' + task.status;
+                    } else {
+                        selectElement.className = 'form-select form-select-sm border-0 fw-600 task-priority-select select-priority-' + task.priority;
+                    }
+                }
+                
+                // Update table row data attribute (used for filtering)
+                const row = document.querySelector(`#taskTable tr[data-status] .task-status-select[data-task-id="${taskId}"]`);
+                if (row) {
+                    const tr = row.closest("tr");
+                    if (isStatus) tr.dataset.status = task.status;
+                    else tr.dataset.priority = task.priority;
+                }
+
+                // Keep Kanban board in sync by moving elements if they exist
+                syncKanbanCard(taskId, task);
+                return task;
+            })
+            .catch(err => {
+                showNotification("Could not update task. Please try again.", "danger");
+                console.error(err);
+            });
+        }
+
+        // Event listeners for selects
+        document.querySelectorAll(".task-status-select").forEach(select => {
+            select.addEventListener("change", function(e) {
+                e.stopPropagation(); // prevent opening modal
+                const taskId = this.dataset.taskId;
+                const newStatus = this.value;
+                updateTaskAttribute(taskId, { status: newStatus }, this, true);
+            });
+        });
+
+        document.querySelectorAll(".task-priority-select").forEach(select => {
+            select.addEventListener("change", function(e) {
+                e.stopPropagation(); // prevent opening modal
+                const taskId = this.dataset.taskId;
+                const newPriority = this.value;
+                updateTaskAttribute(taskId, { priority: newPriority }, this, false);
+            });
+        });
+
+
+        // 2. View Toggle (List vs Kanban Board)
+        const btnListView = document.getElementById("btn-list-view");
+        const btnBoardView = document.getElementById("btn-board-view");
+        const listViewContainer = document.getElementById("list-view-container");
+        const boardViewContainer = document.getElementById("board-view-container");
+
+        function toggleToListView() {
+            btnListView.classList.add("active");
+            btnBoardView.classList.remove("active");
+            listViewContainer.classList.remove("d-none");
+            boardViewContainer.classList.add("d-none");
+            localStorage.setItem("taskViewPreference", "list");
+        }
+
+        function toggleToBoardView() {
+            btnBoardView.classList.add("active");
+            btnListView.classList.remove("active");
+            boardViewContainer.classList.remove("d-none");
+            listViewContainer.classList.add("d-none");
+            localStorage.setItem("taskViewPreference", "board");
+            updateKanbanColumnCounts();
+        }
+
+        btnListView.addEventListener("click", toggleToListView);
+        btnBoardView.addEventListener("click", toggleToBoardView);
+
+        // Load View Preference
+        const viewPref = localStorage.getItem("taskViewPreference");
+        if (viewPref === "board") {
+            toggleToBoardView();
+        } else {
+            toggleToListView();
+        }
+
+
+        // 3. Dynamic Filter Logic for List View (Client Side)
+        const filterStatus = document.getElementById("filterStatus");
+        const filterPriority = document.getElementById("filterPriority");
+
+        function filterList() {
+            const statusVal = filterStatus.value;
+            const priorityVal = filterPriority.value;
+            let visibleCount = 0;
+
+            document.querySelectorAll("#taskTable tbody tr.task-row").forEach(row => {
+                const rowStatus = row.dataset.status;
+                const rowPriority = row.dataset.priority;
+
+                const matchStatus = (statusVal === 'all' || rowStatus === statusVal);
+                const matchPriority = (priorityVal === 'all' || rowPriority === priorityVal);
+
+                if (matchStatus && matchPriority) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            // Handle empty state visibility
+            const emptyRow = document.querySelector("#taskTable tbody tr.empty-row");
+            if (emptyRow) {
+                if (visibleCount === 0) {
+                    emptyRow.style.display = "";
+                } else {
+                    emptyRow.style.display = "none";
+                }
+            }
+        }
+
+        filterStatus.addEventListener("change", filterList);
+        filterPriority.addEventListener("change", filterList);
+
+
+        // 4. Kanban Drag & Drop HTML5 Implementation
+        function initKanbanDragDrop() {
+            const cards = document.querySelectorAll(".kanban-task-card");
+            const columns = document.querySelectorAll(".kanban-cards-container");
+
+            cards.forEach(card => {
+                card.addEventListener("dragstart", function() {
+                    card.classList.add("dragging");
+                });
+
+                card.addEventListener("dragend", function() {
+                    card.classList.remove("dragging");
+                });
+            });
+
+            columns.forEach(col => {
+                col.addEventListener("dragover", function(e) {
+                    e.preventDefault();
+                    col.classList.add("drag-over");
+                });
+
+                col.addEventListener("dragleave", function() {
+                    col.classList.remove("drag-over");
+                });
+
+                col.addEventListener("drop", function(e) {
+                    e.preventDefault();
+                    col.classList.remove("drag-over");
+                    
+                    const draggingCard = document.querySelector(".kanban-task-card.dragging");
+                    if (!draggingCard) return;
+
+                    col.appendChild(draggingCard);
+                    
+                    const taskId = draggingCard.dataset.taskId;
+                    const newStatus = col.parentElement.dataset.status;
+                    
+                    // Trigger AJAX patch update
+                    updateTaskAttribute(taskId, { status: newStatus });
+                    
+                    // Update table list view in sync
+                    const tableSelect = document.querySelector(`.task-status-select[data-task-id="${taskId}"]`);
+                    if (tableSelect) {
+                        tableSelect.value = newStatus;
+                        tableSelect.className = 'form-select form-select-sm border-0 fw-600 task-status-select select-status-' + newStatus;
+                    }
+
+                    // Update local row data attributes for filter synchronization
+                    const tableRow = document.querySelector(`tr[data-status][data-priority] .task-status-select[data-task-id="${taskId}"]`);
+                    if (tableRow) {
+                        tableRow.closest("tr").dataset.status = newStatus;
+                    }
+
+                    updateKanbanColumnCounts();
+                });
+            });
+        }
+
+        function updateKanbanColumnCounts() {
+            document.querySelectorAll(".kanban-column").forEach(col => {
+                const countBadge = col.querySelector(".count-badge");
+                const cardCount = col.querySelectorAll(".kanban-task-card").length;
+                countBadge.innerText = cardCount;
+            });
+        }
+
+        // Helper to sync moving cards when edited from List view or detail modal
+        function syncKanbanCard(taskId, task) {
+            const card = document.querySelector(`.kanban-task-card[data-task-id="${taskId}"]`);
+            if (card) {
+                const targetCol = document.querySelector(`.kanban-column[data-status="${task.status}"] .kanban-cards-container`);
+                if (targetCol && card.parentElement !== targetCol) {
+                    targetCol.appendChild(card);
+                    
+                    // Update the status class on card if we style cards (currently standard card)
+                    updateKanbanColumnCounts();
+                }
+            }
+        }
+
+        initKanbanDragDrop();
+        updateKanbanColumnCounts();
+
+
+        // 5. TASK DETAIL MODAL INTERACTIVES
+        const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+
+        // Handle opening modal on click
+        document.querySelectorAll("#taskTable tbody tr.task-row").forEach(row => {
+            row.addEventListener("click", function(e) {
+                // If clicked on select, a link, or actions td, do not open modal
+                if (e.target.tagName === 'SELECT' || e.target.tagName === 'A' || e.target.closest('a') || e.target.closest('td:last-child')) {
+                    return;
+                }
+                const selectElement = this.querySelector(".task-status-select");
+                if (selectElement) {
+                    openTaskDetailModal(selectElement.dataset.taskId);
+                }
+            });
+        });
+
+        document.querySelectorAll(".kanban-task-card").forEach(card => {
+            card.addEventListener("click", function(e) {
+                // If clicked on dropdown/dropdown actions, do not open modal
+                if (e.target.closest('.dropdown') || e.target.closest('.dropdown-menu')) {
+                    return;
+                }
+                openTaskDetailModal(this.dataset.taskId);
+            });
+        });
+
+        function openTaskDetailModal(taskId) {
+            currentTaskId = taskId;
+            fetchTaskDetails(taskId);
+            modal.show();
+        }
+
+        function fetchTaskDetails(taskId) {
+            fetch(`/api/tasks/${taskId}/`)
+            .then(res => res.json())
+            .then(task => {
+                currentTaskData = task;
+                populateModal(task);
+                // Also fetch all other tasks in the project to support dependency linking
+                fetchProjectTasks(task.project);
+            });
+        }
+
+        function populateModal(task) {
+            document.getElementById("modalTaskTitle").innerText = task.title;
+            document.getElementById("modalTaskDesc").innerText = task.description || "No description provided.";
+            
+            // Metadata
+            document.getElementById("modalProjTitle").innerText = task.project_details ? task.project_details.title : `Project ID: ${task.project}`;
+            document.getElementById("modalAssignee").innerText = task.assignee_details ? task.assignee_details.username : "Unassigned";
+            document.getElementById("modalPriority").innerText = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
+            document.getElementById("modalStatus").innerText = task.status.replace('_', ' ').toUpperCase();
+            document.getElementById("modalDeadline").innerText = task.due_date ? task.due_date : "--";
+
+            // Subtasks
+            renderSubtasks(task.subtasks);
+
+            // Comments
+            renderComments(task.comments);
+
+            // Time Tracking
+            renderTimeLogs(task.time_logs);
+            checkActiveTimer();
+
+            // Dependencies
+            renderDependencies(task.dependencies_details);
+        }
+
+        function fetchProjectTasks(projectId) {
+            fetch(`/api/tasks/?project=${projectId}`)
+            .then(res => res.json())
+            .then(tasks => {
+                currentProjectTasks = tasks.filter(t => t.id !== parseInt(currentTaskId));
+                populateDependencyDropdown();
+            });
+        }
+
+        // --- SUBTASK LOGIC ---
+        function renderSubtasks(subtasks) {
+            const container = document.getElementById("modalSubtaskList");
+            container.innerHTML = "";
+            
+            if (subtasks.length === 0) {
+                container.innerHTML = `<span class="text-muted small italic">No subtasks yet. Add one below!</span>`;
+                updateSubtaskProgress(0, 0);
+                return;
+            }
+
+            let completed = 0;
+            subtasks.forEach(sub => {
+                if (sub.is_completed) completed++;
+                const item = document.createElement("div");
+                item.className = "d-flex justify-content-between align-items-center bg-light p-2 rounded border small text-dark";
+                item.innerHTML = `
+                    <div class="form-check">
+                        <input class="form-check-input subtask-checkbox" type="checkbox" data-sub-id="${sub.id}" ${sub.is_completed ? 'checked' : ''}>
+                        <label class="form-check-label text-dark ${sub.is_completed ? 'text-decoration-line-through text-muted' : ''}">
+                            ${sub.title}
+                        </label>
+                    </div>
+                    <button class="btn btn-sm btn-link text-danger p-0 btn-delete-subtask" data-sub-id="${sub.id}"><i class="bi bi-trash"></i></button>
+                `;
+                container.appendChild(item);
+            });
+
+            updateSubtaskProgress(completed, subtasks.length);
+
+            // Listeners for checking subtasks
+            container.querySelectorAll(".subtask-checkbox").forEach(cb => {
+                cb.addEventListener("change", function() {
+                    const subId = this.dataset.subId;
+                    toggleSubtask(subId, this.checked);
+                });
+            });
+
+            // Listeners for deleting subtasks
+            container.querySelectorAll(".btn-delete-subtask").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    deleteSubtask(this.dataset.subId);
+                });
+            });
+        }
+
+        function updateSubtaskProgress(completed, total) {
+            document.getElementById("subtaskProgressBadge").innerText = `${completed}/${total}`;
+            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById("subtaskProgressBar").style.width = `${percentage}%`;
+        }
+
+        function toggleSubtask(subId, isCompleted) {
+            fetch(`/api/subtasks/${subId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ is_completed: isCompleted })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to update subtask");
+                fetchTaskDetails(currentTaskId);
+            })
+            .catch(err => console.error(err));
+        }
+
+        function deleteSubtask(subId) {
+            fetch(`/api/subtasks/${subId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                }
+            })
+            .then(() => {
+                fetchTaskDetails(currentTaskId);
+            });
+        }
+
+        document.getElementById("btnAddSubtask").addEventListener("click", function() {
+            const input = document.getElementById("newSubtaskTitle");
+            const title = input.value.trim();
+            if (!title) return;
+
+            fetch(`/api/subtasks/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    task: currentTaskId,
+                    title: title,
+                    is_completed: false
+                })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Add subtask failed");
+                input.value = "";
+                fetchTaskDetails(currentTaskId);
+            })
+            .catch(err => console.error(err));
+        });
+
+
+        // --- COMMENTS LOGIC ---
+        function renderComments(comments) {
+            const container = document.getElementById("modalCommentsList");
+            container.innerHTML = "";
+            
+            if (comments.length === 0) {
+                container.innerHTML = `<span class="text-muted small italic">No comments yet. Start the conversation!</span>`;
+                return;
+            }
+
+            comments.forEach(c => {
+                const commentDiv = document.createElement("div");
+                commentDiv.className = "bg-light p-3 rounded border text-dark";
+                const dateStr = new Date(c.created_at).toLocaleString();
+                commentDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold text-primary small">${c.user_details ? c.user_details.username : 'User'}</span>
+                        <span class="text-muted text-xs" style="font-size: 0.75rem;">${dateStr}</span>
+                    </div>
+                    <p class="mb-0 text-dark small">${c.content}</p>
+                `;
+                container.appendChild(commentDiv);
+            });
+            
+            // Auto scroll comments to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById("btnPostComment").addEventListener("click", function() {
+            const txt = document.getElementById("newCommentText");
+            const content = txt.value.trim();
+            if (!content) return;
+
+            fetch(`/api/comments/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({
+                    task: currentTaskId,
+                    content: content
+                })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to post comment");
+                txt.value = "";
+                fetchTaskDetails(currentTaskId);
+            })
+            .catch(err => console.error(err));
+        });
+
+
+        // --- TIME TRACKER LOGIC ---
+        function renderTimeLogs(logs) {
+            const container = document.getElementById("modalTimeLogsList");
+            container.innerHTML = "";
+
+            let totalMinutes = 0;
+            if (logs.length === 0) {
+                container.innerHTML = `<span class="text-muted small italic">No logged time yet.</span>`;
+                document.getElementById("totalLoggedTime").innerText = "0h 0m";
+                return;
+            }
+
+            logs.forEach(log => {
+                // Parse duration from log (format e.g., "02:15:00")
+                if (log.duration) {
+                    const parts = log.duration.split(":");
+                    if (parts.length >= 2) {
+                        const h = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10);
+                        totalMinutes += (h * 60) + m;
+                    }
+                }
+                const dateStr = new Date(log.start_time).toLocaleDateString();
+                const logItem = document.createElement("div");
+                logItem.className = "d-flex justify-content-between text-xs text-muted border-bottom py-1";
+                logItem.style.fontSize = "0.75rem";
+                logItem.innerHTML = `
+                    <span>${log.user_details ? log.user_details.username : 'User'} (${dateStr})</span>
+                    <span class="fw-bold">${formatDurationString(log.duration)}</span>
+                `;
+                container.appendChild(logItem);
+            });
+
+            const totalHours = Math.floor(totalMinutes / 60);
+            const remainingMins = totalMinutes % 60;
+            document.getElementById("totalLoggedTime").innerText = `${totalHours}h ${remainingMins}m`;
+        }
+
+        function formatDurationString(durationStr) {
+            if (!durationStr) return '0m';
+            let parts = durationStr.split(':');
+            if (parts.length < 2) return durationStr;
+            let hours = parseInt(parts[0], 10);
+            let minutes = parseInt(parts[1], 10);
+            let res = [];
+            if (hours > 0) res.push(`${hours}h`);
+            if (minutes > 0) res.push(`${minutes}m`);
+            return res.join(' ') || '0m';
+        }
+
+        // Live Timer functions
+        const btnToggleTimer = document.getElementById("btnToggleTimer");
+        const timeDisplay = document.getElementById("timeTrackerDisplay");
+
+        function checkActiveTimer() {
+            clearInterval(timerInterval);
+            const activeTimer = JSON.parse(localStorage.getItem("activeTaskTimer"));
+            
+            if (activeTimer && activeTimer.taskId === parseInt(currentTaskId)) {
+                btnToggleTimer.innerHTML = `<i class="bi bi-stop-fill me-1"></i>Stop`;
+                btnToggleTimer.className = "btn btn-danger btn-sm fw-bold";
+                startTimerInterval(activeTimer.startTime);
+            } else {
+                btnToggleTimer.innerHTML = `<i class="bi bi-play-fill me-1"></i>Start`;
+                btnToggleTimer.className = "btn btn-warning text-dark btn-sm fw-bold";
+                timeDisplay.innerText = "00:00:00";
+            }
+        }
+
+        function startTimerInterval(startTime) {
+            timerInterval = setInterval(() => {
+                const diffMs = Date.now() - startTime;
+                const secs = Math.floor(diffMs / 1000) % 60;
+                const mins = Math.floor(diffMs / (1000 * 60)) % 60;
+                const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+                
+                timeDisplay.innerText = 
+                    `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        btnToggleTimer.addEventListener("click", function() {
+            const activeTimer = JSON.parse(localStorage.getItem("activeTaskTimer"));
+
+            if (activeTimer && activeTimer.taskId === parseInt(currentTaskId)) {
+                // STOP TIMER
+                clearInterval(timerInterval);
+                localStorage.removeItem("activeTaskTimer");
+
+                const startTimeISO = new Date(activeTimer.startTime).toISOString();
+                const endTimeISO = new Date().toISOString();
+
+                fetch(`/api/timelogs/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        task: currentTaskId,
+                        start_time: startTimeISO,
+                        end_time: endTimeISO
+                    })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("Time logging failed");
+                    fetchTaskDetails(currentTaskId);
+                    showNotification("Time logged successfully!");
+                })
+                .catch(err => console.error(err));
+
+            } else {
+                // START TIMER
+                if (activeTimer) {
+                    alert("A timer is already active for another task! Please stop that one first.");
+                    return;
+                }
+                const startTime = Date.now();
+                localStorage.setItem("activeTaskTimer", JSON.stringify({
+                    taskId: parseInt(currentTaskId),
+                    startTime: startTime
+                }));
+                checkActiveTimer();
+            }
+        });
+
+
+        // --- DEPENDENCY & BLOCKERS LOGIC ---
+        function renderDependencies(dependencies) {
+            const container = document.getElementById("modalDependenciesList");
+            container.innerHTML = "";
+
+            if (!dependencies || dependencies.length === 0) {
+                container.innerHTML = `<span class="text-muted small italic">No dependencies.</span>`;
+                return;
+            }
+
+            dependencies.forEach(dep => {
+                const item = document.createElement("div");
+                item.className = "d-flex justify-content-between align-items-center bg-danger-subtle text-danger px-2 py-1 rounded small border border-danger-subtle";
+                item.innerHTML = `
+                    <span><i class="bi bi-exclamation-octagon me-1"></i>Blocked by: <strong>${dep.title}</strong> (${dep.status.toUpperCase()})</span>
+                    <button class="btn btn-sm btn-link text-danger p-0 btn-remove-dependency" data-dep-id="${dep.id}"><i class="bi bi-x-circle-fill"></i></button>
+                `;
+                container.appendChild(item);
+            });
+
+            // Listeners for deleting dependencies
+            container.querySelectorAll(".btn-remove-dependency").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    removeDependency(parseInt(this.dataset.depId));
+                });
+            });
+        }
+
+        function populateDependencyDropdown() {
+            const select = document.getElementById("selectDependency");
+            select.innerHTML = `<option value="" selected>Link dependency...</option>`;
+            
+            // Get current dependencies array in numeric ID format
+            const currentDeps = currentTaskData.dependencies || [];
+
+            currentProjectTasks.forEach(t => {
+                // Filter out tasks already linked as dependency
+                if (!currentDeps.includes(t.id)) {
+                    const opt = document.createElement("option");
+                    opt.value = t.id;
+                    opt.innerText = t.title;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        document.getElementById("btnAddDependency").addEventListener("click", function() {
+            const select = document.getElementById("selectDependency");
+            const depId = parseInt(select.value);
+            if (!depId) return;
+
+            const updatedDeps = [...(currentTaskData.dependencies || []), depId];
+
+            fetch(`/api/tasks/${currentTaskId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ dependencies: updatedDeps })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Link failed");
+                fetchTaskDetails(currentTaskId);
+                showNotification("Dependency linked successfully!");
+            });
+        });
+
+        function removeDependency(depId) {
+            const updatedDeps = (currentTaskData.dependencies || []).filter(id => id !== depId);
+
+            fetch(`/api/tasks/${currentTaskId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ dependencies: updatedDeps })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Remove link failed");
+                fetchTaskDetails(currentTaskId);
+                showNotification("Dependency unlinked!");
+            });
+        }
+
+        // Keep modal clean when closed
+        document.getElementById("taskDetailModal").addEventListener("hidden.bs.modal", function() {
+            clearInterval(timerInterval);
+        });
+    });
+</script>
+{% endblock %}
